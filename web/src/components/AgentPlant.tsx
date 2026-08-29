@@ -74,7 +74,14 @@ export function AgentPlant({ analyzer, paused = false }: AgentPlantProps) {
       </AnimatePresence>
 
       {/* Progress bar */}
-      <div className="plant-progress-track" aria-hidden="true">
+      <div
+        className="plant-progress-track"
+        role="progressbar"
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} progress`}
+      >
         <motion.div
           className="plant-progress-fill"
           animate={{ width: `${progress}%` }}

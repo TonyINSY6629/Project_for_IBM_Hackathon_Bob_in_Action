@@ -144,6 +144,21 @@ export function CompletionSummary() {
               </ul>
             </section>
           )}
+
+          <div className="summary-actions">
+            <button className="summary-btn summary-btn--primary">
+              Review report
+            </button>
+            <button className="summary-btn summary-btn--secondary">
+              View details
+            </button>
+            <button
+              className="summary-btn summary-btn--ghost"
+              onClick={() => window.location.reload()}
+            >
+              Restart demo
+            </button>
+          </div>
         </>
       )}
 

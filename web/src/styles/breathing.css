@@ -1,6 +1,23 @@
 /* ============================================================
-   breathing.css — BreathingCircle
+   breathing.css — BreathingCircle, recovery panel, CompletionSummary
+   IBM Carbon light theme — recovery panel is intentional dark island
    ============================================================ */
+
+/* ---------- Recovery panel — Carbon Gray 100 dark island ---------- */
+
+.recovery-panel {
+  background: var(--color-recovery-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ---------- Breathing circle ---------- */
 
 .breathing {
   display: flex;
@@ -12,57 +29,80 @@
 }
 
 .breathing-circle {
-  width: 96px;
-  height: 96px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: radial-gradient(
     circle at center,
-    color-mix(in srgb, var(--color-accent) 35%, transparent),
-    color-mix(in srgb, var(--color-accent) 8%, transparent) 70%
+    color-mix(in srgb, var(--color-violet) 45%, transparent),
+    color-mix(in srgb, var(--color-violet) 12%, transparent) 70%
   );
-  border: 1.5px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-violet) 50%, transparent);
 }
 
 .breathing-label {
   font-size: 0.75rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: lowercase;
-  color: var(--color-muted);
+  color: #f4f4f4;
+  font-family: var(--font-sans);
+}
+
+/* Static label shown only in reduced-motion mode */
+.breathing-label--static {
+  display: none;
+}
+
+/* ---------- reduced-motion support ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .breathing-circle {
+    animation: none !important;
+  }
+  /* Hide the animated label, show static one */
+  .breathing-label--animated {
+    display: none;
+  }
+  .breathing-label--static {
+    display: block;
+    color: #f4f4f4;
+    font-size: 0.8125rem;
+  }
 }
 
 /* ---------- Completion summary ---------- */
 
 .summary {
   width: 100%;
-  max-width: 640px;
+  max-width: 660px;
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
 }
 
 .summary-heading {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .summary-section-heading {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   color: var(--color-muted);
   margin-bottom: var(--space-3);
 }
 
 .summary-error {
-  color: var(--color-amber);
-  font-size: 0.85rem;
+  color: var(--color-red);
+  font-size: 0.875rem;
 }
 
 .summary-loading {
   color: var(--color-muted);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 /* ---------- Metrics strip ---------- */
@@ -86,15 +126,17 @@
 }
 
 .summary-metric__value {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-accent);
   font-family: var(--font-mono);
+  line-height: 1;
 }
 
 .summary-metric__label {
   font-size: 0.72rem;
   color: var(--color-muted);
+  line-height: 1.3;
 }
 
 /* ---------- Analyzer results ---------- */
@@ -108,29 +150,30 @@
 
 .summary-analyzer {
   display: grid;
-  grid-template-columns: 80px 140px 1fr;
+  grid-template-columns: 90px 160px 1fr;
   align-items: baseline;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .summary-analyzer--done   { border-left: 3px solid var(--color-green); }
-.summary-analyzer--blocked { border-left: 3px solid var(--color-amber); }
+.summary-analyzer--blocked { border-left: 3px solid var(--color-amber-text); }
 
 .summary-analyzer__status {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-green);
+  font-family: var(--font-mono);
 }
 
 .summary-analyzer--blocked .summary-analyzer__status {
-  color: var(--color-amber);
+  color: var(--color-amber-text);
 }
 
 .summary-analyzer__name {
@@ -157,16 +200,17 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .summary-decision__question {
   color: var(--color-muted);
+  margin-bottom: var(--space-1);
 }
 
 .summary-decision__answer {
   color: var(--color-text);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ---------- Review list ---------- */
@@ -180,16 +224,61 @@
 
 .summary-review-item {
   padding: var(--space-2) var(--space-4);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   font-family: var(--font-mono);
-  color: var(--color-amber);
-  background: color-mix(in srgb, var(--color-amber) 8%, var(--color-surface));
+  color: var(--color-amber-text);
+  background: color-mix(in srgb, var(--color-amber) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-amber) 40%, var(--color-surface));
   border-radius: var(--radius-sm);
 }
+
+/* ---------- Summary action buttons ---------- */
+
+.summary-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.summary-btn {
+  padding: var(--space-3) var(--space-6);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.summary-btn--primary {
+  background: var(--color-accent);
+  color: #ffffff;
+  border: none;
+}
+.summary-btn--primary:hover { background: #0353e9; }
+
+.summary-btn--secondary {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+.summary-btn--secondary:hover {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.summary-btn--ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: none;
+}
+.summary-btn--ghost:hover { color: var(--color-text); }
 
 /* ---------- Responsive ---------- */
 
 @media (max-width: 600px) {
   .summary-metrics { grid-template-columns: repeat(2, 1fr); }
   .summary-analyzer { grid-template-columns: 1fr; }
+  .summary-actions  { flex-direction: column; }
 }
