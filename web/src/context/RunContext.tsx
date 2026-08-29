@@ -130,11 +130,14 @@ function runReducer(state: RunState, action: Action): RunState {
       const allEvents = [...state.allEvents, event];
 
       const analyzers = { ...state.analyzers };
-      analyzers[event.analyzer] = {
-        ...analyzers[event.analyzer],
-        phase: event.phase,
-        progress: event.progress !== undefined ? event.progress : analyzers[event.analyzer].progress,
-      };
+      const existing = analyzers[event.analyzer];
+      if (existing) {
+        analyzers[event.analyzer] = {
+          ...existing,
+          phase: event.phase,
+          progress: event.progress !== undefined ? event.progress : existing.progress,
+        };
+      }
 
       const routed = { event, route };
       let { hiddenEvents, surfacedEvents, pendingDecision, blockers, criticalRisks, completedAnalyzers, status, completedAt } = state;
