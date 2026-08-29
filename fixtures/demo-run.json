@@ -1,0 +1,200 @@
+[
+  {
+    "id": "evt_001", "runId": "run_demo", "ts": "2026-08-30T09:00:00.000Z",
+    "analyzer": "diff-analyst", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Fetching git log for last 14 days",
+    "detail": "git log --oneline --since=2026-08-16 HEAD | 47 commits found",
+    "progress": 10, "decision": null, "replayDelayMs": 800
+  },
+  {
+    "id": "evt_002", "runId": "run_demo", "ts": "2026-08-30T09:00:01.000Z",
+    "analyzer": "deps-scanner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Reading package.json and lockfile",
+    "detail": "package.json: 42 dependencies, 18 devDependencies. Lockfile integrity: OK",
+    "progress": 10, "decision": null, "replayDelayMs": 1000
+  },
+  {
+    "id": "evt_003", "runId": "run_demo", "ts": "2026-08-30T09:00:02.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Discovering test suites",
+    "detail": "Found 38 test files across src/__tests__/ and src/**/*.test.ts",
+    "progress": 5, "decision": null, "replayDelayMs": 1200
+  },
+  {
+    "id": "evt_004", "runId": "run_demo", "ts": "2026-08-30T09:00:03.000Z",
+    "analyzer": "doc-writer", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Scanning README.md, CHANGELOG.md, and /docs",
+    "detail": "Located 6 documentation files. Last CHANGELOG entry: 2026-08-12.",
+    "progress": 10, "decision": null, "replayDelayMs": 1400
+  },
+  {
+    "id": "evt_005", "runId": "run_demo", "ts": "2026-08-30T09:00:05.000Z",
+    "analyzer": "diff-analyst", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Categorising 47 commits",
+    "detail": "feat: 12, fix: 9, refactor: 8, chore: 11, docs: 4, test: 3",
+    "progress": 30, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_006", "runId": "run_demo", "ts": "2026-08-30T09:00:07.000Z",
+    "analyzer": "deps-scanner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Checking for outdated packages",
+    "detail": "npm outdated: 14 packages have newer versions available",
+    "progress": 30, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_007", "runId": "run_demo", "ts": "2026-08-30T09:00:09.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Running unit test suites (1/4)",
+    "detail": "vitest run --reporter=verbose: 142 tests passed, 0 failed so far",
+    "progress": 25, "decision": null, "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_008", "runId": "run_demo", "ts": "2026-08-30T09:00:11.000Z",
+    "analyzer": "doc-writer", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Comparing commit messages to CHANGELOG entries",
+    "detail": "Checking 47 commits against 31 CHANGELOG entries. 16 unmatched commits found.",
+    "progress": 30, "decision": null, "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_009", "runId": "run_demo", "ts": "2026-08-30T09:00:13.000Z",
+    "analyzer": "diff-analyst", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Analysing changed file surface",
+    "detail": "357 files changed, 4821 insertions(+), 1204 deletions(-). High-churn: src/core/ (183 changes)",
+    "progress": 55, "decision": null, "replayDelayMs": 1800
+  },
+  {
+    "id": "evt_010", "runId": "run_demo", "ts": "2026-08-30T09:00:15.000Z",
+    "analyzer": "deps-scanner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Auditing for known vulnerabilities",
+    "detail": "npm audit: 2 moderate, 0 high, 0 critical. Moderate issues in dev dependencies only.",
+    "progress": 55, "decision": null, "replayDelayMs": 1800
+  },
+  {
+    "id": "evt_011", "runId": "run_demo", "ts": "2026-08-30T09:00:17.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Running integration test suites (2/4)",
+    "detail": "vitest run --reporter=verbose: 89 additional tests passed",
+    "progress": 50, "decision": null, "replayDelayMs": 2500
+  },
+  {
+    "id": "evt_012", "runId": "run_demo", "ts": "2026-08-30T09:00:20.000Z",
+    "analyzer": "deps-scanner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Checking for breaking-change version bumps",
+    "detail": "Comparing lockfile to previous release: react 18.2 → 18.3 (minor), express 4.18 → 4.19 (patch)",
+    "progress": 70, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_013", "runId": "run_demo", "ts": "2026-08-30T09:00:22.000Z",
+    "analyzer": "diff-analyst", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Detecting public API changes",
+    "detail": "Scanning exported symbols: 3 new exports, 1 removed export detected in src/core/index.ts",
+    "progress": 75, "decision": null, "replayDelayMs": 1800
+  },
+  {
+    "id": "evt_014", "runId": "run_demo", "ts": "2026-08-30T09:00:24.000Z",
+    "analyzer": "doc-writer", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Checking API reference documentation",
+    "detail": "3 new exported symbols have no JSDoc entries. 2 existing docs reference removed API.",
+    "progress": 55, "decision": null, "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_015", "runId": "run_demo", "ts": "2026-08-30T09:00:26.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Running end-to-end test suites (3/4)",
+    "detail": "playwright test: 22 scenarios running against http://localhost:3000",
+    "progress": 70, "decision": null, "replayDelayMs": 3000
+  },
+  {
+    "id": "evt_016", "runId": "run_demo", "ts": "2026-08-30T09:00:29.000Z",
+    "analyzer": "diff-analyst", "phase": "waiting", "type": "question", "severity": "info",
+    "title": "Removed export detected — confirm versioning intent",
+    "detail": "src/core/index.ts: `parseJobEntry` was removed. Consumers in /web and /server reference this export. This may require a major version bump under semver.",
+    "progress": 80,
+    "decision": {
+      "question": "parseJobEntry has been removed from the public API. How should this release be versioned?",
+      "options": [
+        "Major bump (breaking change, follows semver)",
+        "Minor bump (internal refactor, no external consumers)",
+        "Patch bump (accidental removal, will be restored)"
+      ]
+    },
+    "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_017", "runId": "run_demo", "ts": "2026-08-30T09:00:32.000Z",
+    "analyzer": "deps-scanner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Verifying peer dependency compatibility",
+    "detail": "All peer dependencies satisfied. No peerDependency conflicts detected.",
+    "progress": 85, "decision": null, "replayDelayMs": 1200
+  },
+  {
+    "id": "evt_018", "runId": "run_demo", "ts": "2026-08-30T09:00:34.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "End-to-end tests complete (3/4 suites passed)",
+    "detail": "playwright test: 19/22 passed. 3 failed: login-flow.spec.ts (timeout), dashboard.spec.ts (2 assertions)",
+    "progress": 80, "decision": null, "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_019", "runId": "run_demo", "ts": "2026-08-30T09:00:36.000Z",
+    "analyzer": "test-runner", "phase": "blocked", "type": "blocker", "severity": "warn",
+    "title": "3 end-to-end tests failing — cannot confirm release readiness",
+    "detail": "login-flow.spec.ts: navigation timeout after 30 000 ms. dashboard.spec.ts: assertion failed at line 47 (`expect(count).toBe(5)` received 4) and line 89 (`expect(label).toBe('Active')` received 'Pending'). These failures block a green release signal.",
+    "progress": 80, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_020", "runId": "run_demo", "ts": "2026-08-30T09:00:38.000Z",
+    "analyzer": "doc-writer", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Drafting CHANGELOG entries for 16 undocumented commits",
+    "detail": "Auto-generating entries from commit messages. Review required before merge.",
+    "progress": 75, "decision": null, "replayDelayMs": 2000
+  },
+  {
+    "id": "evt_021", "runId": "run_demo", "ts": "2026-08-30T09:00:40.000Z",
+    "analyzer": "diff-analyst", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Generating change surface summary",
+    "detail": "High-churn modules: src/core/ (183 Δ), src/api/ (97 Δ), src/ui/components/ (62 Δ)",
+    "progress": 90, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_022", "runId": "run_demo", "ts": "2026-08-30T09:00:42.000Z",
+    "analyzer": "deps-scanner", "phase": "done", "type": "complete", "severity": "info",
+    "title": "Dependency scan complete — no breaking changes, 2 moderate advisories",
+    "detail": "14 packages have available updates (none critical). 2 moderate vulnerabilities in devDependencies (eslint-plugin-react, @babel/traverse) — not present in production bundle. Recommended action: update before next sprint.",
+    "progress": 100, "decision": null, "replayDelayMs": 1000
+  },
+  {
+    "id": "evt_023", "runId": "run_demo", "ts": "2026-08-30T09:00:44.000Z",
+    "analyzer": "test-runner", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Running performance benchmark suite (4/4)",
+    "detail": "autocannon -c 100 -d 10 http://localhost:3000/api/runs: running…",
+    "progress": 88, "decision": null, "replayDelayMs": 2500
+  },
+  {
+    "id": "evt_024", "runId": "run_demo", "ts": "2026-08-30T09:00:47.000Z",
+    "analyzer": "doc-writer", "phase": "working", "type": "progress", "severity": "info",
+    "title": "Validating internal documentation links",
+    "detail": "17 cross-references checked. 1 broken link detected: /docs/api-reference.md → #parseJobEntry (removed symbol).",
+    "progress": 88, "decision": null, "replayDelayMs": 1800
+  },
+  {
+    "id": "evt_025", "runId": "run_demo", "ts": "2026-08-30T09:00:49.000Z",
+    "analyzer": "diff-analyst", "phase": "done", "type": "complete", "severity": "info",
+    "title": "Change analysis complete — 47 commits, 357 files, 1 API removal",
+    "detail": "Commits: feat×12, fix×9, refactor×8, chore×11, docs×4, test×3. Changed files: 357 (high-churn: src/core/, src/api/). Public API: 3 added, 1 removed (parseJobEntry). Versioning decision pending developer answer.",
+    "progress": 100, "decision": null, "replayDelayMs": 1200
+  },
+  {
+    "id": "evt_026", "runId": "run_demo", "ts": "2026-08-30T09:00:51.000Z",
+    "analyzer": "test-runner", "phase": "done", "type": "complete", "severity": "warn",
+    "title": "Test run complete — 450 passed, 3 failing end-to-end tests",
+    "detail": "Unit: 231/231 passed. Integration: 196/196 passed. E2E: 19/22 passed (3 failures: login-flow, dashboard×2). Performance: p50=12ms, p99=48ms, 0 timeouts under load. Release blocked pending E2E fix.",
+    "progress": 100, "decision": null, "replayDelayMs": 1500
+  },
+  {
+    "id": "evt_027", "runId": "run_demo", "ts": "2026-08-30T09:00:53.000Z",
+    "analyzer": "doc-writer", "phase": "done", "type": "complete", "severity": "info",
+    "title": "Documentation review complete — 16 CHANGELOG entries drafted, 1 broken link",
+    "detail": "Auto-generated CHANGELOG entries for 16 undocumented commits (human review recommended). 3 symbols missing JSDoc. 1 broken internal link (/docs/api-reference.md#parseJobEntry). Draft entries available in /docs/CHANGELOG-draft.md.",
+    "progress": 100, "decision": null, "replayDelayMs": 1200
+  }
+]
