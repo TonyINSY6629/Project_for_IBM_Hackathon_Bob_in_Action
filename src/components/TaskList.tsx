@@ -1,4 +1,4 @@
-import type { Task } from '../App'
+import type { Task } from '../types/task'
 
 interface TaskListProps {
   tasks: Task[]
