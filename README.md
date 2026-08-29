@@ -1,9 +1,9 @@
-﻿# Bob Break
+# Bob Break
 
 **A developer attention management system for agentic AI.**
 While Bob works, you breathe.
 
-Submission for the **IBM TechXchange 2026 Pre-conference Dev Day Hackathon** ΓÇö theme: *Build with purpose using IBM Bob 2.0*.
+Submission for the **IBM TechXchange 2026 Pre-conference Dev Day Hackathon** — theme: *Build with purpose using IBM Bob 2.0*.
 
 ---
 
@@ -73,12 +73,12 @@ The developer is interrupted only when human input provides real value:
 
 | Event class | What the developer sees |
 | --- | --- |
-| Background progress | Silent aggregation ΓÇö a plant grows in the garden |
+| Background progress | Silent aggregation — a plant grows in the garden |
 | Decision required | The garden pauses; one short, structured question |
 | Blocked task | A calm notice naming exactly what is stuck |
 | Critical risk | An immediate alert |
 
-Everything else is held for the **release report** ΓÇö the structured summary that brings the developer back to the code with a clear picture of what changed, what passed, what remains risky, and what needs review.
+Everything else is held for the **release report** — the structured summary that brings the developer back to the code with a clear picture of what changed, what passed, what remains risky, and what needs review.
 
 > Bob reduces the workload. Bob Break reduces the cognitive load.
 
@@ -90,7 +90,7 @@ The diagram below shows every component in scope for this prototype, and how it 
 
 ```mermaid
 graph TD
-    subgraph Prototype["≡ƒƒó In scope ΓÇö this prototype"]
+    subgraph Prototype["🟢 In scope — this prototype"]
         direction TB
         A1[diff-analyst]
         A2[deps-scanner]
@@ -105,9 +105,9 @@ graph TD
         R[Release report]
     end
 
-    subgraph Future["≡ƒö╡ Future integration ΓÇö adapter swap only"]
-        BOB[IBM Bob 2.0\nlive subagent events]
-        WX[watsonx Orchestrate\nbusiness workflow layer]
+    subgraph Future["🔵 Future integration — adapter swap only"]
+        BOB["IBM Bob 2.0<br/>live subagent events"]
+        WX["watsonx Orchestrate<br/>business workflow layer"]
     end
 
     A1 & A2 & A3 & A4 -->|events| EA
@@ -136,18 +136,18 @@ sequenceDiagram
     actor Dev as Developer
     participant BB as Bob Break
     participant AM as Attention Manager
-    participant An as Analyzers (├ù4)
+    participant An as Analyzers (×4)
     participant R  as Release Report
 
     Dev->>BB: Start run (live or replay)
     BB->>An: Spawn 4 parallel analyzers
-    Note over BB: Garden activates ΓÇö plants begin growing
+    Note over BB: Garden activates — plants begin growing
 
     loop Each analyzer event
         An-->>AM: Emit event {type, severity, phase}
         AM-->>AM: Classify event
         alt progress / info
-            AM-->>BB: Silent ΓÇö plant grows
+            AM-->>BB: Silent — plant grows
         else decision required
             AM-->>Dev: Decision card (one structured question)
             Dev-->>AM: Answer
@@ -170,14 +170,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-  subgraph Analyzers["Local analyzers ΓÇö parallel"]
+  subgraph Analyzers["Local analyzers — parallel"]
     A1[diff-analyst]
     A2[deps-scanner]
     A3[test-runner]
     A4[doc-writer]
   end
 
-  BOB[/"IBM Bob event stream\n(future integration)"/]
+  BOB[/"IBM Bob event stream<br/>(future integration)"/]
 
   subgraph Server["Backend"]
     EA[Event Adapter]
@@ -221,12 +221,12 @@ flowchart TD
     IN([Incoming event]) --> T{type?}
 
     T -->|progress / complete| S{severity?}
-    S -->|info| SIL[Silent ΓÇö aggregate to garden]
+    S -->|info| SIL[Silent — aggregate to garden]
     S -->|warn| SIL
-    S -->|critical| CRIT[≡ƒö┤ Immediate alert]
+    S -->|critical| CRIT[🔴 Immediate alert]
 
-    T -->|question| DEC[≡ƒƒí Decision card\npause garden]
-    T -->|blocker| BLK[≡ƒƒá Blocker notice]
+    T -->|question| DEC["🟡 Decision card<br/>pause garden"]
+    T -->|blocker| BLK["🟠 Blocker notice"]
     T -->|risk| RK{severity?}
     RK -->|warn| BLK
     RK -->|critical| CRIT
@@ -244,40 +244,40 @@ flowchart TD
 
 | Garden state | What it means |
 | --- | --- |
-| ≡ƒî▒ Seedling | Analyzer planned, not yet started |
-| ≡ƒî┐ Growing | Analyzer working ΓÇö progress events arriving |
-| ΓÅ╕∩╕Å Paused | Waiting for a developer decision |
-| ≡ƒìé Wilting | Analyzer blocked |
-| ≡ƒî╕ Flowering | Analyzer completed successfully |
-| Γ£¿ Fireflies | All analyzers done ΓÇö transitioning to report |
+| 🌱 Seedling | Analyzer planned, not yet started |
+| 🌿 Growing | Analyzer working — progress events arriving |
+| ⏸️ Paused | Waiting for a developer decision |
+| 🍂 Wilting | Analyzer blocked |
+| 🌸 Flowering | Analyzer completed successfully |
+| ✨ Fireflies | All analyzers done — transitioning to report |
 
 ---
 
 ## The workload: Release Readiness Assistant
 
-Bob Break is not a wellness widget sitting next to an agent ΓÇö it visualizes real work. The work in this prototype is **release readiness**, one of the most manual and error-prone gates in the SDLC.
+Bob Break is not a wellness widget sitting next to an agent — it visualizes real work. The work in this prototype is **release readiness**, one of the most manual and error-prone gates in the SDLC.
 
 At runtime the prototype executes **four local analyzers in parallel** against a target repository. Each one emits events as it goes and contributes a section to the report.
 
 ```mermaid
 flowchart TB
-    REPO[(Target\nrepository)]
+    REPO[("Target<br/>repository")]
 
-    subgraph Parallel["Four analyzers ΓÇö parallel execution"]
+    subgraph Parallel["Four analyzers — parallel execution"]
         direction LR
-        A1["≡ƒöì diff-analyst\ngit diff, git log"]
-        A2["≡ƒôª deps-scanner\npackage.json, lockfile"]
-        A3["≡ƒº¬ test-runner\ntest output"]
-        A4["≡ƒô¥ doc-writer\nREADME, CHANGELOG"]
+        A1["🔍 diff-analyst<br/>git diff, git log"]
+        A2["📦 deps-scanner<br/>package.json, lockfile"]
+        A3["🧪 test-runner<br/>test output"]
+        A4["📝 doc-writer<br/>README, CHANGELOG"]
     end
 
     REPO --> A1 & A2 & A3 & A4
 
     subgraph Report["Release readiness report"]
-        R1[Change surface\nCategorized commits]
-        R2[Version drift\nBreaking-change flags]
-        R3[Pass / fail counts\nFailing suites]
-        R4[Draft CHANGELOG\nStale-doc warnings]
+        R1["Change surface<br/>Categorized commits"]
+        R2["Version drift<br/>Breaking-change flags"]
+        R3["Pass / fail counts<br/>Failing suites"]
+        R4["Draft CHANGELOG<br/>Stale-doc warnings"]
     end
 
     A1 --> R1
@@ -304,7 +304,7 @@ Every component on both sides of the seam keys off this one shape.
   "type": "progress",
   "severity": "info",
   "title": "3 minor version bumps detected",
-  "detail": "ΓÇªfull technical text, never shown unpromptedΓÇª",
+  "detail": "…full technical text, never shown unprompted…",
   "decision": null
 }
 ```
@@ -312,12 +312,12 @@ Every component on both sides of the seam keys off this one shape.
 | Field | Values |
 | --- | --- |
 | `analyzer` | which local analyzer emitted the event |
-| `phase` | `planned` ┬╖ `working` ┬╖ `waiting` ┬╖ `blocked` ┬╖ `done` |
-| `type` | `progress` ┬╖ `question` ┬╖ `blocker` ┬╖ `risk` ┬╖ `complete` |
-| `severity` | `info` ┬╖ `warn` ┬╖ `critical` |
+| `phase` | `planned` · `working` · `waiting` · `blocked` · `done` |
+| `type` | `progress` · `question` · `blocker` · `risk` · `complete` |
+| `severity` | `info` · `warn` · `critical` |
 | `decision` | `null`, or `{ question, options[] }` when developer input is required |
 
-The format is deliberately source-agnostic. Any producer that can emit this shape ΓÇö a local analyzer today, an agent event stream later ΓÇö works without changes downstream.
+The format is deliberately source-agnostic. Any producer that can emit this shape — a local analyzer today, an agent event stream later — works without changes downstream.
 
 ---
 
@@ -325,7 +325,7 @@ The format is deliberately source-agnostic. Any producer that can emit this shap
 
 | Route | Method | Purpose |
 | --- | --- | --- |
-| `/api/runs` | `POST` | Start a run ΓÇö `{ mode: "live" \| "replay" }` |
+| `/api/runs` | `POST` | Start a run — `{ mode: "live" \| "replay" }` |
 | `/api/runs/:id/stream` | `GET` | Server-sent event stream |
 | `/api/runs/:id/decisions` | `POST` | Submit an answer to a decision card |
 | `/api/runs/:id/report` | `GET` | The release readiness report |
@@ -337,23 +337,23 @@ The format is deliberately source-agnostic. Any producer that can emit this shap
 
 The prototype runs in two modes, and the difference is stated plainly because it matters:
 
-- **`live`** ΓÇö the four analyzers execute against a real target repository and emit real events as they run.
-- **`replay`** ΓÇö the backend replays a recorded run of those same analyzers. Deterministic, used for the demo video so a recording never depends on a live run succeeding.
+- **`live`** — the four analyzers execute against a real target repository and emit real events as they run.
+- **`replay`** — the backend replays a recorded run of those same analyzers. Deterministic, used for the demo video so a recording never depends on a live run succeeding.
 
 ```mermaid
 flowchart LR
     subgraph Live["Live mode"]
-        LR[(Real repo)] --> LA[Analyzers\nexecute]
-        LA --> LE[Real events]
+        LREPO[("Real repo")] --> LA["Analyzers<br/>execute"]
+        LA --> LE["Real events"]
     end
 
     subgraph Replay["Replay mode"]
-        FF[/fixtures/\nrecorded run/] --> RE[Events\nreplayed]
+        FF[/"fixtures/<br/>recorded run"/] --> RE["Events<br/>replayed"]
     end
 
-    LE & RE --> EA[Event Adapter]
-    EA --> AM[Attention Manager]
-    AM --> UI[Visual interface\nand report]
+    LE & RE --> EA["Event Adapter"]
+    EA --> AM["Attention Manager"]
+    AM --> UI["Visual interface<br/>and report"]
 ```
 
 Both modes exercise the identical Event Adapter, Attention Manager, and interface. Replay changes where the events come from, nothing else.
@@ -379,23 +379,23 @@ graph LR
         TSB[TypeScript]
         EX[Express]
         SSE[Server-Sent Events]
-        CP[Child processes\nfor analyzers]
+        CP["Child processes<br/>for analyzers"]
     end
 
     subgraph State["State"]
-        RC[React Context\n+ reducer]
-        RL[JSON run log\non disk]
+        RC["React Context<br/>+ reducer"]
+        RL["JSON run log<br/>on disk"]
     end
 
     subgraph Test["Testing"]
         VIT[Vitest]
-        ATM[Attention Manager\nunit tests]
+        ATM["Attention Manager<br/>unit tests"]
     end
 
     subgraph Infra["Infrastructure"]
         GH[GitHub]
-        VE[Vercel / Netlify\ndeployment]
-        IBM[IBM Bob 2.0\nagentic development]
+        VE["Vercel / Netlify<br/>deployment"]
+        IBM["IBM Bob 2.0<br/>agentic development"]
     end
 
     FE <-->|SSE / REST| BE
@@ -409,7 +409,7 @@ graph LR
 | Frontend | React 18 + TypeScript + Vite | Fast, visual, easy to divide across team members |
 | Styling | Custom CSS with variables | Greater control with less configuration |
 | Animations | Framer Motion | Garden growth, breathing animations, transitions |
-| State | React Context + reducer | Sufficient for an MVP ΓÇö no external store needed |
+| State | React Context + reducer | Sufficient for an MVP — no external store needed |
 | Events | JSON + Event Adapter | Supports both real and simulated events |
 | Testing | Vitest + Testing Library | Simple integration with Vite |
 | End-to-end | Playwright (time permitting) | Demonstrates the complete workflow |
@@ -430,26 +430,25 @@ The prototype instruments itself rather than asserting productivity gains:
 
 The headline number is the ratio: **how many events the run produced versus how few reached the developer.**
 
-```mermaid
-xychart-beta
-    title "Target: events produced vs events surfaced to developer"
-    x-axis ["diff-analyst", "deps-scanner", "test-runner", "doc-writer"]
-    y-axis "Events" 0 --> 40
-    bar [32, 28, 38, 22]
-    line [3, 2, 4, 2]
-```
+| Analyzer | Events produced | Surfaced to developer | Suppressed |
+| --- | ---: | ---: | ---: |
+| `diff-analyst` | 32 | 3 | 91% |
+| `deps-scanner` | 28 | 2 | 93% |
+| `test-runner` | 38 | 4 | 89% |
+| `doc-writer` | 22 | 2 | 91% |
+| **Total** | **120** | **11** | **91%** |
 
-> *Bar = total events produced by each analyzer. Line = events surfaced to the developer. Figures are design targets, not measured results.*
+> Design targets, not measured results. The ratio is the claim: roughly nine of every ten events never need to reach the developer, and the run counter in the interface reports the real figure for each demo.
 
 ### Traditional workflow vs Bob Break targets
 
 | Metric | Traditional agent workflow | Bob Break target |
 | --- | --- | --- |
 | Progress checks | Frequent | Only when necessary |
-| Context switches | 4ΓÇô6 | 0ΓÇô1 |
+| Context switches | 4–6 | 0–1 |
 | Intermediate output reviewed | Almost everything | Only actionable information |
 | Continuous technical-text exposure | High | Significantly reduced |
-| Intentional visual recovery | None | 30ΓÇô90 seconds |
+| Intentional visual recovery | None | 30–90 seconds |
 | Visibility across parallel agents | Fragmented | Unified |
 | Final review | Unstructured output | Progressive summary |
 
@@ -460,8 +459,8 @@ xychart-beta
 ## Repository layout
 
 ```
-/server        backend ΓÇö analyzers, event adapter, attention manager, report builder
-/web           frontend ΓÇö garden, decision cards, alerts, report view
+/server        backend — analyzers, event adapter, attention manager, report builder
+/web           frontend — garden, decision cards, alerts, report view
 /fixtures      recorded analyzer run used by replay mode
 /evidence      IBM Bob task session summary screenshots
 /docs          problem & solution statements, Bob usage statement
@@ -494,28 +493,28 @@ IBM Bob Agent mode and subagents were used to plan, build, test, and document th
 
 ```mermaid
 flowchart TD
-    subgraph BobCapabilities["IBM Bob 2.0 ΓÇö capabilities used"]
-        AGT[Agent Mode\nplan + implement architecture]
-        SUB[Subagents\nisolated build contexts]
-        PAR[Parallel tasks\nconcurrent multi-step sequences]
-        DOC[Document understanding\nread specs, conventions, docs]
-        RUL[Custom rules\nconsistent commit + doc style]
+    subgraph BobCapabilities["IBM Bob 2.0 — capabilities used"]
+        AGT["Agent Mode<br/>plan + implement architecture"]
+        SUB["Subagents<br/>isolated build contexts"]
+        PAR["Parallel tasks<br/>concurrent multi-step sequences"]
+        DOC["Document understanding<br/>read specs, conventions, docs"]
+        RUL["Custom rules<br/>consistent commit + doc style"]
     end
 
-    AGT --> ARCH[Architecture\nand analyzers]
-    SUB --> ISO[Backend ┬╖ Interface ┬╖ Tests\nno context pollution]
-    PAR --> CON[Concurrent build\nand test runs]
-    DOC --> CON2[Work follows real\nproject constraints]
-    RUL --> CON3[Consistent output\nacross all generated work]
+    AGT --> ARCH["Architecture<br/>and analyzers"]
+    SUB --> ISO["Backend · Interface · Tests<br/>no context pollution"]
+    PAR --> CON["Concurrent build<br/>and test runs"]
+    DOC --> CON2["Work follows real<br/>project constraints"]
+    RUL --> CON3["Consistent output<br/>across all generated work"]
 ```
 
 Specifically:
 
-- **Agent mode** ΓÇö planned the architecture and implemented the analyzers, the event pipeline, and the frontend components
-- **Subagents** ΓÇö isolated each build task in a self-contained context so work on the backend, the interface, and the tests did not pollute one another
-- **Parallel tasks** ΓÇö ran multi-step build and test sequences concurrently across the codebase
-- **Document understanding** ΓÇö read the project's own specifications, conventions, and existing documentation so generated work followed the real constraints instead of treating each request as an isolated coding task
-- **Custom rules** ΓÇö enforced consistent commit categorization and documentation style across everything Bob generated
+- **Agent mode** — planned the architecture and implemented the analyzers, the event pipeline, and the frontend components
+- **Subagents** — isolated each build task in a self-contained context so work on the backend, the interface, and the tests did not pollute one another
+- **Parallel tasks** — ran multi-step build and test sequences concurrently across the codebase
+- **Document understanding** — read the project's own specifications, conventions, and existing documentation so generated work followed the real constraints instead of treating each request as an isolated coding task
+- **Custom rules** — enforced consistent commit categorization and documentation style across everything Bob generated
 
 > **TODO before submission:** replace this list with the specific tasks Bob performed, and confirm the exported task session summary screenshots are committed under `/evidence`.
 
@@ -524,9 +523,9 @@ Specifically:
 ## Submission deliverables
 
 - [ ] Video demonstration, including how IBM Bob was used
-- [ ] Written problem and solution statements ΓÇö `/docs`
-- [ ] Written statement on how IBM Bob was utilized ΓÇö `/docs`
-- [ ] Working code repository with exported Bob task session summary screenshots ΓÇö `/evidence`
+- [ ] Written problem and solution statements — `/docs`
+- [ ] Written statement on how IBM Bob was utilized — `/docs`
+- [ ] Working code repository with exported Bob task session summary screenshots — `/evidence`
 
 ---
 
@@ -534,8 +533,8 @@ Specifically:
 
 | Role | Owner |
 | --- | --- |
-| Backend ΓÇö analyzers, event stream, attention manager | *TBD* |
-| Frontend ΓÇö garden, decision cards, report view | *TBD* |
+| Backend — analyzers, event stream, attention manager | *TBD* |
+| Frontend — garden, decision cards, report view | *TBD* |
 | Evidence, written statements, video | *TBD* |
 
 ---
