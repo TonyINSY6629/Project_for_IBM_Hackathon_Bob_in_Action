@@ -254,6 +254,235 @@ acelerado 10× (`speedMultiplier: 0.1`) que completa el demo en ~7 segundos.
 - Demo completo en ~7 segundos para ensayo.
 - Sin cambio de comportamiento — solo la velocidad varía.
 
+
+## Sub-Task 9 — Generar el informe de evidencia HTML para el validador
+
+**Status:** [ ] pending
+
+**Intent**  
+Producir un fichero HTML único (`evidence/hackathon-evidence.html`) que el validador
+humano puede abrir en cualquier navegador sin dependencias. Recoge en orden:
+capturas de pantalla del demo, resultados de tests, métricas reales del run,
+el reporte final generado, y el código fuente de los archivos clave.
+
+**Todo**
+
+### Paso A — Capturar pantallas del demo (mientras corre en http://localhost:5173)
+
+Haz una captura en cada uno de estos momentos y guárdalas en la carpeta `evidence/`:
+
+| Nombre del archivo | Momento |
+|---|---|
+| `01-garden-start.png` | Jardín recién iniciado — 4 plantas en semilla |
+| `02-garden-growing.png` | Plantas creciendo en paralelo |
+| `03-decision-card.png` | Tarjeta de decisión visible, jardín pausado |
+| `04-decision-answered.png` | Jardín reanudado tras responder |
+| `05-blocker-alert.png` | Alerta de blocker visible |
+| `06-all-completed.png` | Las 4 plantas florecidas |
+| `07-release-report.png` | Pantalla del reporte final |
+
+> En Windows: `Win + Shift + S` para captura de región → guardar como PNG en `evidence/`.
+
+### Paso B — Guardar output de tests y typecheck
+
+```bash
+cd server
+npm test > ../evidence/test-results.txt 2>&1
+npm run typecheck > ../evidence/typecheck-results.txt 2>&1
+cd ..
+```
+
+### Paso C — Obtener el reporte JSON del run completado
+
+Cuando el demo termine, copia el `runId` que aparece en la consola del servidor
+y ejecuta:
+
+```bash
+curl http://localhost:3000/api/runs/REPLACE_WITH_RUN_ID/report > evidence/release-report.json
+```
+
+### Paso D — Crear el script generador de evidencia
+
+Crea el archivo `evidence/generate-evidence.js` con este contenido:
+
+```js
+// evidence/generate-evidence.js
+// Ejecutar desde la raíz: node evidence/generate-evidence.js
+// Genera: evidence/hackathon-evidence.html
+
+import { readFileSync, writeFileSync } from "fs";
+import { extname } from "path";
+
+function readText(f) {
+  try { return readFileSync(f, "utf-8"); } catch { return null; }
+}
+function imgBase64(f) {
+  try {
+    const mime = extname(f).toLowerCase() === ".jpg" ? "image/jpeg" : "image/png";
+    return `data:${mime};base64,${readFileSync(f).toString("base64")}`;
+  } catch { return null; }
+}
+
+const shots = [
+  ["evidence/01-garden-start.png",      "1. Garden start — 4 plants at seedling"],
+  ["evidence/02-garden-growing.png",    "2. Plants growing in parallel"],
+  ["evidence/03-decision-card.png",     "3. Decision card — garden paused"],
+  ["evidence/04-decision-answered.png", "4. Garden resumed after answer"],
+  ["evidence/05-blocker-alert.png",     "5. Blocker alert visible"],
+  ["evidence/06-all-completed.png",     "6. All 4 plants flowering"],
+  ["evidence/07-release-report.png",    "7. Release report screen"],
+];
+
+const codeFiles = [
+  ["server/src/types/bob-events.ts",            "Shared event contract"],
+  ["server/src/attention/classifyEvent.ts",      "Event classifier (pure function)"],
+  ["server/src/attention/attentionReducer.ts",   "Attention reducer"],
+  ["server/src/attention/createSummary.ts",      "Summary generator"],
+  ["server/src/adapters/replayEventAdapter.ts",  "Replay adapter"],
+  ["server/tests/attention.test.ts",             "Unit tests (40+)"],
+  ["server/src/index.ts",                        "Express server + SSE routes"],
+];
+
+const e = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+const screensHtml = shots.map(([f,l]) => {
+  const src = imgBase64(f);
+  return src
+    ? `<figure><img src="${src}" alt="${l}"><figcaption>${l}</figcaption></figure>`
+    : `<div class="missing">⚠ ${l} — screenshot not found (${f})</div>`;
+}).join("\n");
+
+const codeHtml = codeFiles.map(([f,l]) => {
+  const src = readText(f);
+  return src
+    ? `<details><summary>${l} <code>${f}</code></summary><pre>${e(src)}</pre></details>`
+    : `<div class="missing">⚠ ${l} — file not found (${f})</div>`;
+}).join("\n");
+
+const tests     = readText("evidence/test-results.txt");
+const typecheck = readText("evidence/typecheck-results.txt");
+const report    = readText("evidence/release-report.json");
+
+const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bob Break — Hackathon Evidence</title>
+<style>
+  body{font-family:-apple-system,"Segoe UI",sans-serif;max-width:900px;margin:0 auto;padding:40px 24px;color:#1f2328;background:#fff}
+  h1{font-size:24px;border-bottom:3px solid #0f62fe;padding-bottom:8px}
+  h2{font-size:17px;margin-top:40px;color:#0f62fe;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+  figure{margin:12px 0;border:1px solid #e0e0e0;border-radius:4px;overflow:hidden}
+  figure img{width:100%;display:block}
+  figcaption{padding:7px 12px;background:#f4f4f4;font-size:12px;color:#525252}
+  pre{background:#f4f4f4;padding:14px;overflow-x:auto;font-size:11.5px;font-family:monospace;border-radius:4px;margin:0}
+  details{margin:8px 0;border:1px solid #e0e0e0;border-radius:4px}
+  summary{padding:9px 14px;cursor:pointer;background:#f4f4f4;font-size:13px;font-weight:600}
+  summary code{font-weight:400;color:#525252;margin-left:8px;font-size:12px}
+  .missing{padding:9px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;font-size:13px;margin:8px 0}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  .card{background:#f4f4f4;border-left:4px solid #0f62fe;padding:12px 16px;border-radius:2px}
+  .card .v{font-size:28px;font-weight:700;color:#0f62fe}
+  .card .l{font-size:12px;color:#525252;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+  th{background:#f4f4f4;border:1px solid #e0e0e0;padding:7px 10px;text-align:left}
+  td{border:1px solid #e0e0e0;padding:6px 10px}
+  footer{margin-top:60px;padding-top:14px;border-top:1px solid #e0e0e0;text-align:center;font-size:12px;color:#8d8d8d}
+</style>
+</head>
+<body>
+<h1>Bob Break — Hackathon Evidence</h1>
+<p>IBM TechXchange 2026 Pre-conference Dev Day Hackathon<br>
+<strong>Theme:</strong> Build with purpose using IBM Bob 2.0 &nbsp;·&nbsp;
+<strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+
+<div class="grid">
+  <div class="card"><div class="v">3</div><div class="l">Team members</div></div>
+  <div class="card"><div class="v">4</div><div class="l">Parallel agents</div></div>
+  <div class="card"><div class="v">~81%</div><div class="l">Events suppressed</div></div>
+</div>
+
+<h2>1. Demo Screenshots</h2>
+${screensHtml}
+
+<h2>2. Test Results</h2>
+${tests ? `<pre>${e(tests)}</pre>` : '<div class="missing">⚠ Run: cd server && npm test > ../evidence/test-results.txt 2>&1</div>'}
+
+<h2>3. TypeScript Type Check</h2>
+${typecheck ? `<pre>${e(typecheck)}</pre>` : '<div class="missing">⚠ Run: cd server && npm run typecheck > ../evidence/typecheck-results.txt 2>&1</div>'}
+
+<h2>4. Release Report (JSON output of createSummary)</h2>
+${report ? `<pre>${e(JSON.stringify(JSON.parse(report),null,2))}</pre>` : '<div class="missing">⚠ Run demo then: curl http://localhost:3000/api/runs/RUN_ID/report > evidence/release-report.json</div>'}
+
+<h2>5. Attention Routing Rules</h2>
+<table>
+  <tr><th>#</th><th>Condition</th><th>Route</th><th>Developer sees</th></tr>
+  <tr><td>1</td><td>severity === "critical"</td><td>critical-alert</td><td>Immediate alert</td></tr>
+  <tr><td>2</td><td>type === "risk"</td><td>critical-alert</td><td>Immediate alert</td></tr>
+  <tr><td>3</td><td>type === "complete" or phase === "done"</td><td>completed</td><td>Plant flowers, progress 100%</td></tr>
+  <tr><td>4</td><td>type === "question" + decision object</td><td>decision</td><td>Decision card, garden paused</td></tr>
+  <tr><td>5</td><td>type === "blocker"</td><td>blocker</td><td>Blocker notice</td></tr>
+  <tr><td>6</td><td>everything else</td><td>visual-progress</td><td>Silent — plant grows</td></tr>
+</table>
+
+<h2>6. Source Code — Key Files</h2>
+${codeHtml}
+
+<h2>7. Architecture</h2>
+<table>
+  <tr><th>Component</th><th>File</th><th>Description</th></tr>
+  <tr><td>Shared types</td><td><code>server/src/types/bob-events.ts</code></td><td>Single contract used by all 3 parts</td></tr>
+  <tr><td>Event classifier</td><td><code>server/src/attention/classifyEvent.ts</code></td><td>Pure function: BobEvent → AttentionRoute</td></tr>
+  <tr><td>State reducer</td><td><code>server/src/attention/attentionReducer.ts</code></td><td>Pure reducer: (RunState, action) → RunState</td></tr>
+  <tr><td>Summary builder</td><td><code>server/src/attention/createSummary.ts</code></td><td>RunState → ReleaseReport</td></tr>
+  <tr><td>Replay adapter</td><td><code>server/src/adapters/replayEventAdapter.ts</code></td><td>Deterministic fixture replay + decision pausing</td></tr>
+  <tr><td>HTTP server</td><td><code>server/src/index.ts</code></td><td>Express + SSE on port 3000</td></tr>
+  <tr><td>Run context</td><td><code>web/src/context/RunContext.tsx</code></td><td>React context + SSE consumer</td></tr>
+</table>
+
+<h2>8. IBM Bob 2.0 Usage Statement</h2>
+<p>IBM Bob Agent mode and subagents were used to plan, implement, test, and document Part 2 (Attention Manager)
+entirely within Bob. Bob read the team's shared contracts and existing code before writing a single line,
+classified events using a pure deterministic function, maintained run state with a pure reducer,
+and generated a structured report — all verifiable by the unit tests included in this evidence report.</p>
+
+<footer>Made with IBM Bob 2.0 &nbsp;·&nbsp; Bob Break &nbsp;·&nbsp; IBM TechXchange 2026</footer>
+</body></html>`;
+
+writeFileSync("evidence/hackathon-evidence.html", html, "utf-8");
+console.log("✅ Generated: evidence/hackathon-evidence.html");
+```
+
+### Paso E — Ejecutar el script
+
+Desde la **raíz del proyecto**:
+```bash
+node evidence/generate-evidence.js
+```
+
+### Paso F — Abrir y verificar el HTML
+
+```bash
+# Windows
+start evidence/hackathon-evidence.html
+
+# macOS
+open evidence/hackathon-evidence.html
+```
+
+**Expected Outcomes**
+- `evidence/hackathon-evidence.html` existe y se abre en el navegador sin servidor.
+- El HTML contiene screenshots, resultados de tests, reporte JSON y código fuente.
+- El validador humano puede entender el proyecto completo leyendo solo este fichero.
+- No requiere conexión a internet ni Node.js para visualizarse.
+
+**Archivos que produce este sub-task:**
+- `evidence/generate-evidence.js` — script generador (crearlo manualmente con el código de arriba)
+- `evidence/hackathon-evidence.html` — **fichero final de entrega**
+
+---
+
+
 ---
 
 ## Resumen de comandos
