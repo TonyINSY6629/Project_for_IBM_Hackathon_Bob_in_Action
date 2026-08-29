@@ -160,7 +160,7 @@ app.post("/api/runs", (req: Request, res: Response) => {
 
   entry.adapter.start();
 
-  res.status(201).json({ runId });
+  res.status(201).json({ id: runId });
 });
 
 // ---------------------------------------------------------------------------
