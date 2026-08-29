@@ -1,0 +1,303 @@
+/* ============================================================
+   garden.css — AgentGarden, AgentPlant, DecisionCard, RiskAlert
+   IBM Carbon light theme
+   ============================================================ */
+
+/* ---------- Garden container ---------- */
+
+.garden {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 580px;
+}
+
+.garden-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  list-style: none;
+  width: 100%;
+}
+
+.garden-counter {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+.garden-counter__num {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ---------- Individual plant ---------- */
+
+.plant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.3s, background 0.3s;
+  min-height: 160px;
+}
+
+.plant--done {
+  border-left: 3px solid var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 6%, var(--color-surface));
+}
+
+.plant--blocked {
+  border-left: 3px solid var(--color-amber-text);
+  background: color-mix(in srgb, var(--color-amber) 8%, var(--color-surface));
+}
+
+.plant--paused {
+  opacity: 0.65;
+}
+
+/* ---------- Stem ---------- */
+
+.plant-stem-track {
+  width: 4px;
+  height: 80px;
+  background: var(--color-border);
+  border-radius: 2px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* working — IBM Blue */
+.plant-stem {
+  width: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transform-origin: bottom;
+}
+
+/* done — green */
+.plant--done .plant-stem {
+  background: var(--color-green);
+}
+
+/* blocked — amber */
+.plant--blocked .plant-stem {
+  background: var(--color-amber-text);
+}
+
+/* ---------- Icon ---------- */
+
+.plant-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  display: block;
+}
+
+/* ---------- Progress bar ---------- */
+
+.plant-progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.plant-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+
+.plant--done .plant-progress-fill {
+  background: var(--color-green);
+}
+
+.plant--blocked .plant-progress-fill {
+  background: var(--color-amber-text);
+}
+
+/* ---------- Label ---------- */
+
+.plant-label {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ---------- Decision card — Carbon Modal style ---------- */
+
+.decision-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.decision-card__from {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.decision-card__badge {
+  background: color-mix(in srgb, var(--color-amber) 20%, var(--color-surface));
+  color: var(--color-amber-text);
+  border: 1px solid color-mix(in srgb, var(--color-amber) 40%, var(--color-surface));
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.decision-card__question {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-4);
+}
+
+.decision-card__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.decision-card__option {
+  width: 100%;
+  text-align: left;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.decision-card__option:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--color-bg));
+}
+
+.decision-card__option--selected {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+
+.decision-card__submit {
+  align-self: flex-end;
+  background: var(--color-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.decision-card__submit:disabled {
+  background: var(--color-border);
+  color: var(--color-placeholder);
+  cursor: not-allowed;
+}
+
+.decision-card__submit:not(:disabled):hover { background: #0353e9; }
+
+/* ---------- Risk alert — Carbon inline notification ---------- */
+
+.risk-alert {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-amber-text);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.risk-alert--risk {
+  border-left-color: var(--color-red);
+}
+
+.risk-alert__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.risk-alert__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-amber-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.risk-alert--risk .risk-alert__badge {
+  color: var(--color-red);
+}
+
+.risk-alert__analyzer {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  flex: 1;
+}
+
+.risk-alert__dismiss {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 var(--space-1);
+}
+
+.risk-alert__dismiss:hover { color: var(--color-text); }
+
+.risk-alert__title {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 480px) {
+  .garden-grid { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .plant { min-height: 130px; padding: var(--space-3); }
+  .decision-card { padding: var(--space-4); }
+}

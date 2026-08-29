@@ -23,10 +23,10 @@ The prototype must demonstrate:
 
 ## Agent Roles
 
-- UI Agent
-- Accessibility Agent
-- Testing Agent
-- Documentation Agent
+- `diff-analyst` — implements UI changes (dark mode); records changed files and updates CHANGELOG
+- `deps-scanner` — checks `package.json` and lockfile for outdated packages and breaking changes
+- `test-runner` — writes and executes Vitest unit tests; reports pass/fail results
+- `doc-writer` — updates README, adds JSDoc comments, verifies CHANGELOG matches changes
 
 ## Event Types
 
