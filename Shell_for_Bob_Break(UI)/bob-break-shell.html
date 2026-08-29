@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bob Break</title>
+<link rel="icon" type="image/png" href="bob-head.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --blue:#0f62fe; --blue-hover:#0043ce; --blue-light:#78a9ff; --blue-tint:#edf5ff;
+  --gray100:#161616; --gray90:#262626; --gray80:#393939; --gray70:#525252;
+  --gray50:#8d8d8d; --gray30:#c6c6c6; --gray20:#e0e0e0; --gray10:#f4f4f4; --white:#fff;
+  --green:#198038; --green-deep:#0e6027; --mint:#defbe6;
+  --yellow:#f1c21b; --amber:#8e6a00; --amber-tint:#fcf4d6;
+  --red:#da1e28; --red-tint:#fff1f1;
+  --sans:"IBM Plex Sans",Arial,Helvetica,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;height:100%}
+body{font-family:var(--sans);background:#101010;color:var(--gray100);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--blue-light);outline-offset:2px}
+
+.demo{position:relative;height:100vh;overflow:hidden;display:grid;place-items:center;background:#111}
+
+/* ---------- the IDE layer: real files, real code, real event firehose ---------- */
+.ide-layer{
+  position:absolute;inset:0;display:grid;
+  grid-template-columns:262px 1fr;grid-template-rows:1fr 208px;
+  background:var(--gray100);color:#e6e6e6;
+  transition:filter .55s ease,opacity .55s ease,transform .7s ease;
+}
+.recovery-on .ide-layer{filter:brightness(1.15) contrast(.6);opacity:.62;transform:scale(1.01);
+  pointer-events:none}
+.tree{grid-row:1 / span 2;border-right:1px solid var(--gray80);overflow:auto;
+  padding:12px 0;background:#0d0d0d}
+.tree-head,.log-head{padding:6px 16px 10px;font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--gray50)}
+.node{display:flex;align-items:center;gap:7px;width:100%;padding:3px 16px;border:0;
+  background:none;text-align:left;font-family:var(--mono);font-size:12px;color:#d0d0d0;
+  white-space:nowrap}
+.node:hover{background:var(--gray90)}
+.node[aria-current="true"]{background:#00329e;color:#fff}
+.node .ico{color:var(--gray50);font-size:10px}
+.node.dir{color:var(--gray50);font-weight:600;cursor:default}
+.code-pane{overflow:auto;background:var(--gray100)}
+.code-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;
+  padding:9px 18px;background:var(--gray90);border-bottom:1px solid var(--gray80);
+  font-family:var(--mono);font-size:11.5px;color:var(--gray30)}
+pre.code{margin:0;padding:12px 0;font-family:var(--mono);font-size:12.5px;line-height:1.62}
+pre.code .row{display:grid;grid-template-columns:54px 1fr}
+pre.code .n{color:var(--gray70);text-align:right;padding-right:16px;user-select:none}
+pre.code .l{white-space:pre-wrap;word-break:break-word;padding-right:22px}
+.tok-c{color:#6f6f6f;font-style:italic}
+.tok-s{color:#42be65}
+.tok-k{color:#78a9ff}
+.tok-n{color:#ff7eb6}
+.logpane{border-top:1px solid var(--gray80);background:#0d0d0d;overflow:auto;padding:8px 0}
+.log-head{position:sticky;top:0;background:#0d0d0d;margin:0}
+.logline{font-family:var(--mono);font-size:11px;line-height:1.5;padding:1px 18px;
+  white-space:pre-wrap;word-break:break-word;color:var(--gray50)}
+.logline .t{color:var(--gray70)}
+.logline .a{color:var(--blue-light)}
+.logline[data-sev="warn"]{color:var(--yellow)}
+.logline[data-sev="critical"]{color:#ff8389}
+
+/* ---------- the view switch ---------- */
+.comparison-control{
+  position:fixed;z-index:20;top:18px;left:50%;transform:translateX(-50%);
+  min-height:68px;display:flex;align-items:center;gap:18px;padding:8px 20px;
+  color:#a8a8a8;background:#161616;border:1px solid #6f6f6f;
+  box-shadow:0 8px 30px rgba(0,0,0,.24);
+}
+.comparison-control .side{display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap}
+.comparison-control .side.active{color:#fff}
+.switch-control{display:flex;flex-direction:column;align-items:center;gap:5px}
+.switch-control small{color:var(--gray30);font-size:10px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase}
+.mode-switch{position:relative;width:58px;height:30px;padding:2px;border:2px solid var(--gray30);
+  background:var(--gray70);box-shadow:0 0 0 1px rgba(255,255,255,.12);transition:background .2s ease,
+  border-color .2s ease}
+.mode-switch .knob{display:block;width:22px;height:22px;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.mode-switch[aria-checked="true"]{background:var(--blue);border-color:var(--blue-light)}
+.mode-switch[aria-checked="true"] .knob{transform:translateX(26px)}
+
+/* ---------- recovery overlay ---------- */
+.recovery-veil{position:absolute;inset:0;background:rgba(237,245,255,.76);
+  backdrop-filter:blur(5px) saturate(.55);opacity:0;transition:opacity .55s ease;pointer-events:none}
+.recovery-on .recovery-veil{opacity:1}
+.recovery-surface{
+  position:relative;z-index:5;width:min(1120px,calc(100vw - 64px));height:min(700px,calc(100vh - 120px));
+  display:flex;flex-direction:column;background:rgba(244,244,244,.97);border-top:4px solid var(--blue);
+  box-shadow:0 24px 80px rgba(22,22,22,.20);opacity:0;transform:translateY(18px) scale(.985);
+  pointer-events:none;transition:opacity .5s ease,transform .6s cubic-bezier(.2,.8,.2,1);
+}
+.recovery-on .recovery-surface{opacity:1;transform:none;pointer-events:auto}
+
+.surface-header{flex:0 0 auto;height:72px;padding:0 28px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--gray20);background:rgba(255,255,255,.88)}
+.surface-header .brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{position:relative;width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--blue);color:#fff;overflow:hidden}
+.brand-mark img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.surface-header strong{display:block;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.surface-header small{display:block;color:var(--gray70);font-size:12px;font-family:var(--mono);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34ch}
+.safe-status{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;
+  color:var(--green-deep);background:var(--mint);border-left:3px solid #24a148;white-space:nowrap}
+.safe-status[data-s="idle"]{color:var(--gray70);background:var(--gray10);border-left-color:var(--gray30)}
+.safe-status[data-s="decision"]{color:var(--amber);background:var(--amber-tint);border-left-color:var(--yellow)}
+.safe-status[data-s="blocked"]{color:var(--red);background:var(--red-tint);border-left-color:var(--red)}
+
+.surface-body{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.18fr .82fr}
+.garden-panel{padding:40px 44px;border-right:1px solid var(--gray20);overflow:auto}
+.breathing-panel{padding:40px;display:flex;flex-direction:column;background:#fff;overflow:auto}
+.overline{margin:0 0 14px;color:var(--blue-hover);font-size:12px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase}
+.garden-panel h1{max-width:520px;margin:0;font-size:34px;line-height:1.14;font-weight:400;
+  letter-spacing:-.025em;text-wrap:balance}
+.calm-copy{max-width:530px;margin:16px 0 32px;color:var(--gray70);font-size:15px;line-height:1.55}
+
+.agent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gray20);
+  border:1px solid var(--gray20)}
+.agent{position:relative;min-width:0;padding:18px 14px;overflow:hidden;background:var(--white);
+  transition:background .6s ease}
+.plant{--growth:.45;width:48px;height:48px;display:grid;place-items:center;margin-bottom:20px;
+  color:var(--blue-hover);background:var(--blue-tint);
+  transform:translateY(calc((1 - var(--growth)) * 9px)) scale(var(--growth));transform-origin:50% 100%;
+  transition:transform .65s cubic-bezier(.2,.75,.25,1),color .5s ease,background .5s ease}
+.plant svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.plant.stage-sprout{animation:gentle-sway 4.8s ease-in-out infinite}
+.plant.stage-leaf{animation:gentle-sway 5.6s ease-in-out infinite}
+.plant.stage-flower{color:var(--green);background:var(--mint);
+  animation:flower-arrive .9s cubic-bezier(.2,.8,.2,1) both}
+.plant.stage-blocked{color:var(--amber);background:var(--amber-tint)}
+.plant.stage-waiting{color:var(--blue);background:var(--blue-tint);
+  animation:pulse-wait 2.2s ease-in-out infinite}
+.agent-complete{background:#f7fff9}
+.agent-complete::after{content:"";position:absolute;width:5px;height:5px;right:14px;top:14px;
+  border-radius:50%;background:#24a148;box-shadow:-8px 7px #a7f0ba,5px 10px #78d99a;
+  animation:celebrate 1.4s ease-out both}
+.agent strong{display:block;min-height:38px;font-size:12px;line-height:1.35;font-weight:500}
+.agent small{color:var(--gray70);font-size:10px;white-space:nowrap}
+.agent small b{color:var(--gray100);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.progress-track{height:3px;margin:14px 0 8px;background:var(--gray20)}
+.progress-track span{display:block;height:100%;background:var(--blue);
+  transition:width .65s linear,background .4s ease}
+.agent-complete .progress-track span{background:var(--green)}
+.agent[data-phase="blocked"] .progress-track span{background:var(--yellow)}
+@keyframes gentle-sway{0%,100%{rotate:-1.5deg}50%{rotate:1.5deg}}
+@keyframes flower-arrive{0%{transform:translateY(8px) scale(.6);opacity:.5}
+  65%{transform:translateY(-2px) scale(1.12)}100%{transform:none;opacity:1}}
+@keyframes celebrate{0%{opacity:0;transform:translateY(10px) scale(.4)}35%{opacity:1}
+  100%{opacity:0;transform:translateY(-18px) scale(1.2)}}
+@keyframes pulse-wait{0%,100%{box-shadow:0 0 0 0 rgba(15,98,254,.35)}
+  50%{box-shadow:0 0 0 7px rgba(15,98,254,0)}}
+
+.evidence{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:1px;margin-top:26px;
+  background:var(--gray20)}
+.evidence div{padding:16px;background:#fff}
+.evidence strong,.evidence span{display:block}
+.evidence strong{font-size:25px;font-weight:400;font-variant-numeric:tabular-nums}
+.evidence span{color:var(--gray70);font-size:10px}
+.evidence .noise{background:var(--blue-tint)}
+.evidence .noise strong{color:var(--blue-hover)}
+
+/* interruptions + report, in the same flat Carbon idiom */
+.card{margin-top:20px;padding:16px 18px;background:#fff;border:1px solid var(--gray20);
+  border-left:3px solid var(--yellow)}
+.card.crit{border-left-color:var(--red)}
+.card .lbl{margin-bottom:7px;font-size:10.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber)}
+.card.crit .lbl{color:var(--red)}
+.card h3{margin:0 0 5px;font-size:15px;font-weight:600}
+.card p{margin:0;color:var(--gray70);font-size:13px}
+.card .acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card .acts button{padding:7px 15px;border:1px solid var(--gray30);background:#fff;
+  font-size:12.5px;font-weight:500}
+.card .acts button:hover{border-color:var(--blue);color:var(--blue-hover)}
+.card .acts button.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.card .acts button.pri:hover{background:var(--blue-hover);color:#fff}
+.card .answered{font-size:12.5px;color:var(--gray70)}
+
+.report{margin-top:26px;padding:22px 24px;background:#fff;border:1px solid var(--gray20);
+  border-top:3px solid var(--blue)}
+.report h3{margin:0 0 4px;font-size:18px;font-weight:600;letter-spacing:-.015em}
+.report .sub{margin-bottom:16px;color:var(--gray70);font-size:12.5px;font-family:var(--mono)}
+.rsec{border-top:1px solid var(--gray20);padding:13px 0 3px}
+.rsec .rt{margin-bottom:7px;font-size:11px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gray70)}
+.rsec ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.rsec li{font-size:13px;line-height:1.5}
+.rsec li code{font-family:var(--mono);font-size:11.5px;background:var(--gray10);padding:1px 4px}
+.rsec li .sev{display:inline-block;margin-right:7px;padding:1px 6px;font-family:var(--mono);
+  font-size:10px;font-weight:600;text-transform:uppercase;background:var(--gray10);color:var(--gray70)}
+.rsec li .sev.warn{background:var(--amber-tint);color:var(--amber)}
+.rsec li .sev.crit{background:var(--red-tint);color:var(--red)}
+
+/* breathing */
+.breathing-space{flex:1;display:grid;place-items:center;min-height:280px}
+.breathing-ring{width:224px;height:224px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid #a6c8ff;background:#f7fbff;
+  box-shadow:0 0 0 24px rgba(15,98,254,.05),0 0 0 48px rgba(15,98,254,.025);
+  transition:transform 4s cubic-bezier(.45,0,.55,1)}
+.breathing-ring div{text-align:center}
+.breathing-ring span,.breathing-ring small{display:block}
+.breathing-ring span{color:var(--blue-hover);font-size:23px}
+.breathing-ring small{margin-top:8px;color:var(--gray70);font-size:12px;font-family:var(--mono)}
+.essential-status{display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:18px;color:var(--green-deep);font-size:13px;font-family:var(--mono)}
+.details-button{align-self:center;display:flex;align-items:center;gap:7px;border:0;
+  border-bottom:1px solid var(--gray30);padding:8px 0;margin-bottom:6px;color:var(--gray70);
+  background:transparent;font-size:12px}
+.details-button:hover{color:var(--blue-hover);border-color:var(--blue)}
+.icon{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* caption shown while the IDE is unobstructed */
+.normal-caption{position:fixed;z-index:10;left:28px;bottom:28px;display:flex;flex-direction:column;
+  max-width:390px;padding:16px 18px;color:#fff;background:rgba(22,22,22,.92);
+  border-left:4px solid var(--red);opacity:0;transition:opacity .4s ease;pointer-events:none}
+.recovery-off .normal-caption{opacity:1}
+.normal-caption strong{font-size:14px}
+.normal-caption span{margin-top:4px;color:var(--gray30);font-size:12px}
+
+/* empty state */
+.empty{position:fixed;inset:0;z-index:40;display:grid;place-items:center;
+  background:rgba(16,16,16,.94)}
+.empty-card{width:min(560px,calc(100vw - 40px));padding:44px 40px;text-align:center;
+  background:#fff;border-top:4px solid var(--blue);box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.empty-card .logo{width:76px;height:76px;margin:0 auto 20px;display:grid;place-items:center;
+  background:var(--blue-tint);overflow:hidden}
+.empty-card .logo img{width:100%;height:100%;object-fit:cover}
+.empty-card h1{margin:0 0 10px;font-size:26px;font-weight:400;letter-spacing:-.02em}
+.empty-card p{margin:0 0 24px;color:var(--gray70);font-size:14.5px;line-height:1.55}
+.btn{padding:12px 28px;border:1px solid var(--blue);background:var(--blue);color:#fff;
+  font-size:14px;font-weight:500}
+.btn:hover{background:var(--blue-hover);border-color:var(--blue-hover)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{margin-top:20px;font-size:11.5px;color:var(--gray70);font-family:var(--mono)}
+.warnbox{margin-top:18px;padding:12px 14px;text-align:left;font-size:12.5px;
+  color:var(--amber);background:var(--amber-tint);border-left:3px solid var(--yellow)}
+.hidden{display:none!important}
+
+@media (max-width:900px){
+  .recovery-surface{width:calc(100vw - 30px);height:calc(100vh - 110px);margin-top:60px}
+  .surface-body{grid-template-columns:1fr}
+  .garden-panel{border-right:0;border-bottom:1px solid var(--gray20)}
+  .garden-panel,.breathing-panel{padding:26px}
+  .agent-grid{grid-template-columns:1fr 1fr}
+  .ide-layer{grid-template-columns:180px 1fr}
+}
+@media (max-width:560px){
+  .comparison-control{top:10px}
+  .surface-header{padding:0 16px}
+  .safe-status{font-size:0;gap:0}
+  .garden-panel h1{font-size:26px}
+  .evidence{grid-template-columns:1fr}
+  .agent-grid{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .breathing-ring,.plant,.agent-complete::after{animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<main class="demo recovery-on" id="demo">
+
+  <!-- the real IDE: file tree, source, and the unfiltered event firehose -->
+  <div class="ide-layer" id="ideLayer">
+    <nav class="tree" id="tree"><div class="tree-head">Files</div></nav>
+    <div class="code-pane">
+      <div class="code-head"><span id="codePath">select a file</span><span id="codeMeta"></span></div>
+      <pre class="code" id="code"></pre>
+    </div>
+    <div class="logpane">
+      <div class="log-head">Agent output — every event, unfiltered</div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div class="comparison-control">
+    <span class="side" id="sideIde">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      IDE view
+    </span>
+    <div class="switch-control">
+      <small>Switch view</small>
+      <button class="mode-switch" id="modeSwitch" role="switch" aria-checked="true"
+              aria-label="Switch between the IDE and Bob Break recovery mode"><span class="knob"></span></button>
+    </div>
+    <span class="side active" id="sideRec">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/></svg>
+      Bob Break
+    </span>
+  </div>
+
+  <div class="recovery-veil"></div>
+
+  <section class="recovery-surface">
+    <header class="surface-header">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/></svg>
+          <img src="bob-head.png" alt="" onerror="this.remove()">
+        </span>
+        <div>
+          <strong>Bob Break</strong>
+          <small id="folderName">Recovery mode</small>
+        </div>
+      </div>
+      <div class="safe-status" id="status" data-s="idle">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.7 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.5 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span id="statusText">Idle</span>
+      </div>
+    </header>
+
+    <div class="surface-body">
+      <section class="garden-panel" aria-labelledby="garden-title">
+        <p class="overline">Agent garden</p>
+        <h1 id="garden-title">Ready when you are.</h1>
+        <p class="calm-copy">You do not need to monitor every update. Bob Break interrupts only when
+          your attention changes the outcome.</p>
+
+        <div class="agent-grid" id="garden"></div>
+
+        <div class="evidence">
+          <div><strong id="tTotal">0</strong><span>events received</span></div>
+          <div><strong id="tSurf">0</strong><span>surfaced</span></div>
+          <div class="noise"><strong id="tNoise">—</strong><span>less visual noise</span></div>
+        </div>
+
+        <div id="interrupts"></div>
+        <div id="reportSlot"></div>
+      </section>
+
+      <section class="breathing-panel" aria-label="Guided breathing">
+        <p class="overline">30-second reset</p>
+        <div class="breathing-space">
+          <div class="breathing-ring" id="circle">
+            <div><span id="bLab">Breathe in</span><small id="bSec">4 seconds</small></div>
+          </div>
+        </div>
+        <div class="essential-status" aria-live="polite">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          <span id="rActive">0 active · 0 complete</span>
+        </div>
+        <button class="details-button" id="showDetails" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7"/><path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3.6 7 10 7a10.9 10.9 0 0 0 4.4-.9"/><path d="m2 2 20 20"/></svg>
+          Technical details hidden
+        </button>
+        <button class="details-button" id="rescan" type="button">Scan another folder</button>
+      </section>
+    </div>
+  </section>
+
+  <div class="normal-caption">
+    <strong>Without Bob Break</strong>
+    <span>Continuous code, logs and agent output compete for attention.</span>
+  </div>
+</main>
+
+<div class="empty" id="empty">
+  <div class="empty-card">
+    <div class="logo"><img src="bob-head.png" alt="" onerror="this.remove()"></div>
+    <h1>Point Bob Break at a project</h1>
+    <p>The shell reads a directory you choose, derives four release-readiness analyzers from what is
+       actually in it, and renders the run two ways — the code, or the garden.</p>
+    <button class="btn" id="pick">Choose folder</button>
+    <div class="note">Nothing is uploaded. Files are read locally in the browser.</div>
+    <div class="warnbox hidden" id="apiWarn">
+      This browser has no File System Access API. Open the shell in Chrome or Edge to read a
+      local directory.
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Bob Break Shell
+ * Reads a local directory, derives four analyzers from what is really
+ * there, and streams their events through one attention manager into
+ * two views: the code (IDE) and the garden (recovery).
+ * ------------------------------------------------------------------ */
+
+const SKIP_DIRS = new Set(["node_modules",".git","dist","build","out",".next",".cache",
+  "coverage","venv",".venv","__pycache__","target","vendor",".idea",".vscode",".turbo"]);
+const CODE_EXT = new Set(["js","jsx","ts","tsx","mjs","cjs","py","rb","go","rs","java","c","h",
+  "cpp","cs","php","swift","kt","css","scss","less","html","vue","svelte","sh","sql",
+  "r","jl","scala","dart"]);
+const TEXT_EXT = new Set([...CODE_EXT,"json","md","yml","yaml","toml","txt","xml","env",
+  "ipynb","cfg","ini"]);
+const HASH_COMMENT = new Set(["py","rb","sh","yml","yaml","toml","env","r","cfg","ini"]);
+const MAX_FILES = 1500, MAX_READ = 160*1024, MAX_TEXT_READS = 500;
+const MAX_NB_READ = 8*1024*1024;      // notebooks carry saved outputs and run large
+
+const state = {
+  files: [], events: [], idx: 0, timer: null, paused: false,
+  total: 0, surfaced: 0, findings: [], truncated: false,
+  agents: {
+    change:{ id:"change", name:"Change analysis",  phase:"planned", done:0, total:0 },
+    deps:  { id:"deps",   name:"Dependencies",     phase:"planned", done:0, total:0 },
+    tests: { id:"tests",  name:"Tests",            phase:"planned", done:0, total:0 },
+    docs:  { id:"docs",   name:"Documentation",    phase:"planned", done:0, total:0 }
+  }
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const ext = p => (p.split(".").pop() || "").toLowerCase();
+
+/* ---------------- view switching ---------------- */
+
+function setView(v){
+  const rec = v === "recovery";
+  $("demo").classList.toggle("recovery-on", rec);
+  $("demo").classList.toggle("recovery-off", !rec);
+  $("modeSwitch").setAttribute("aria-checked", String(rec));
+  $("sideRec").classList.toggle("active", rec);
+  $("sideIde").classList.toggle("active", !rec);
+}
+$("modeSwitch").onclick = () =>
+  setView($("modeSwitch").getAttribute("aria-checked") === "true" ? "ide" : "recovery");
+$("sideIde").onclick = () => setView("ide");
+$("sideRec").onclick = () => setView("recovery");
+$("showDetails").onclick = () => setView("ide");
+addEventListener("keydown", e => {
+  if (e.key === "v" && !/input|textarea/i.test(e.target.tagName)){
+    setView($("demo").classList.contains("recovery-on") ? "ide" : "recovery");
+  }
+});
+
+function setStatus(kind, text){
+  $("status").dataset.s = kind;
+  $("statusText").textContent = text;
+}
+
+/* ---------------- directory scan ---------------- */
+
+async function walk(dir, prefix, depth, out){
+  if (depth > 8 || out.length >= MAX_FILES) return;
+  for await (const entry of dir.values()){
+    if (out.length >= MAX_FILES){ state.truncated = true; return; }
+    if (entry.name.startsWith(".") && entry.kind === "directory" && !SKIP_DIRS.has(entry.name)){
+      continue;                                   // skip stray dotfolders
+    }
+    const path = prefix ? prefix + "/" + entry.name : entry.name;
+    if (entry.kind === "directory"){
+      if (SKIP_DIRS.has(entry.name)) continue;
+      await walk(entry, path, depth + 1, out);
+    } else {
+      let f;
+      try { f = await entry.getFile(); } catch { continue; }
+      out.push({ path, name: entry.name, ext: ext(entry.name), size: f.size,
+                 mtime: f.lastModified, handle: entry, lines: null, text: null });
+    }
+  }
+}
+
+async function readSome(files){
+  let budget = MAX_TEXT_READS;
+  for (const f of files){
+    if (budget <= 0) break;
+    const cap = f.ext === "ipynb" ? MAX_NB_READ : MAX_READ;
+    if (!TEXT_EXT.has(f.ext) || f.size > cap) continue;
+    try {
+      const t = await (await f.handle.getFile()).text();
+      f.text = t;
+      f.lines = t.split("\n").length;
+      budget--;
+    } catch { /* unreadable file — leave counts null */ }
+  }
+}
+
+/* ---------------- analyzers ---------------- */
+/* Each returns { events:[], findings:[] } built from the real scan. */
+
+let evSeq = 0;
+function ev(analyzer, o){
+  return Object.assign({
+    id: "evt_" + String(++evSeq).padStart(4,"0"),
+    ts: Date.now(), analyzer, phase:"working", type:"progress",
+    severity:"info", detail:"", decision:null
+  }, o);
+}
+
+function analyzeChange(files){
+  const events = [], findings = [];
+  const code = files.filter(f => CODE_EXT.has(f.ext));
+  const byExt = {};
+  code.forEach(f => byExt[f.ext] = (byExt[f.ext]||0)+1);
+  const top = Object.entries(byExt).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+  events.push(ev("change",{title:`Scanning ${files.length} files`, detail:"walking the directory tree"}));
+  top.forEach(([e,n]) => events.push(ev("change",{title:`${n} .${e} files`, detail:`extension group .${e}`})));
+
+  const lines = code.reduce((s,f)=>s+(f.lines||0),0);
+  if (lines) events.push(ev("change",{title:`${lines.toLocaleString()} lines of source read`}));
+
+  // Notebooks are JSON on disk, so line counts mean nothing — count cells instead.
+  const nbs = files.filter(f => f.ext === "ipynb");
+  if (nbs.length){
+    let cells = 0, withOutputs = 0, unparsed = 0;
+    nbs.forEach(f => {
+      if (!f.text){ unparsed++; return; }
+      try {
+        const cs = (JSON.parse(f.text).cells) || [];
+        cells += cs.length;
+        if (cs.some(c => (c.outputs && c.outputs.length) || c.execution_count != null)) withOutputs++;
+      } catch { unparsed++; }
+    });
+    events.push(ev("change",{title:`${nbs.length} notebook${nbs.length>1?"s":""}, ${cells} cells`,
+      detail:nbs.slice(0,3).map(f => f.path).join(", ")}));
+    if (withOutputs){
+      events.push(ev("change",{type:"risk", severity:"warn",
+        title:`${withOutputs} notebook${withOutputs>1?"s":""} saved with outputs`,
+        detail:"execution counts and cell outputs are stored inside the file"}));
+      findings.push({sev:"warn",
+        text:`${withOutputs} notebook(s) carry saved outputs — diffs are noisy and result data ships with the code`});
+    }
+    if (unparsed) findings.push({sev:"info",
+      text:`${unparsed} notebook(s) too large to parse (over ${MAX_NB_READ/1048576} MB)`});
+  }
+
+  const recent = [...files].sort((a,b)=>b.mtime-a.mtime).slice(0,3);
+  if (recent.length){
+    events.push(ev("change",{title:`Most recently changed: ${recent[0].name}`,
+      detail:new Date(recent[0].mtime).toLocaleString()}));
+    findings.push({sev:"info", text:`Newest file: <code>${esc(recent[0].path)}</code>`});
+  }
+
+  const big = code.filter(f => (f.lines||0) > 400).sort((a,b)=>(b.lines||0)-(a.lines||0));
+  if (big.length){
+    events.push(ev("change",{type:"risk", severity:"warn",
+      title:`${big.length} file${big.length>1?"s":""} over 400 lines`,
+      detail:big.slice(0,3).map(f=>`${f.path} (${f.lines})`).join(", ")}));
+    findings.push({sev:"warn", text:`${big.length} oversized file(s), largest <code>${esc(big[0].path)}</code> at ${big[0].lines} lines`});
+  }
+  events.push(ev("change",{type:"complete", phase:"done", title:"Change analysis complete"}));
+  return {events, findings};
+}
+
+/* Manifest readers, in priority order. Each returns
+   { deps:[{name,version,pinned}], dev:[...], version } or throws. */
+const dep = (name, version, pinned) =>
+  ({ name:String(name).trim(), version: version ? String(version).trim() : "", pinned: !!pinned });
+
+function mfNpm(t){
+  const j = JSON.parse(t);
+  const conv = o => Object.entries(o||{}).map(([k,v]) => dep(k, v, /^\d/.test(String(v))));
+  return { deps:conv(j.dependencies), dev:conv(j.devDependencies), version:j.version||null };
+}
+function mfRequirements(t){
+  const deps = t.split("\n").map(l => l.split("#")[0].trim())
+    .filter(l => l && !l.startsWith("-"))
+    .map(l => {
+      const m = l.match(/^([A-Za-z0-9._-]+)\s*(\[.*?\])?\s*(.*)$/);
+      if (!m) return null;
+      const spec = (m[3]||"").split(";")[0].trim();
+      return dep(m[1], spec, spec.startsWith("=="));
+    }).filter(Boolean);
+  return { deps, dev:[], version:null };
+}
+function mfPyproject(t){
+  const deps = [];
+  const arr = t.match(/^\s*dependencies\s*=\s*\[([\s\S]*?)\]/m);
+  if (arr) arr[1].split(",").map(s => s.replace(/["'\s]/g,"")).filter(Boolean).forEach(s => {
+    const m = s.match(/^([A-Za-z0-9._-]+)(.*)$/);
+    if (m) deps.push(dep(m[1], m[2], m[2].startsWith("==")));
+  });
+  const sec = t.match(/\[tool\.poetry\.dependencies\]([\s\S]*?)(\n\[|$)/);
+  if (sec) sec[1].split("\n").forEach(l => {
+    const m = l.match(/^\s*([A-Za-z0-9._-]+)\s*=\s*(.+)$/);
+    if (m && m[1] !== "python"){
+      const v = m[2].replace(/["'{}]/g,"").trim();
+      deps.push(dep(m[1], v, /^\d/.test(v)));
+    }
+  });
+  const ver = t.match(/^\s*version\s*=\s*["']([^"']+)["']/m);
+  return { deps, dev:[], version: ver ? ver[1] : null };
+}
+function mfPipfile(t){
+  const grab = sec => !sec ? [] : sec[1].split("\n").map(l => {
+    const m = l.match(/^\s*"?([A-Za-z0-9._-]+)"?\s*=\s*(.+)$/);
+    if (!m) return null;
+    const v = m[2].replace(/["'{}]/g,"").trim();
+    return dep(m[1], v === "*" ? "" : v, /^==/.test(v));
+  }).filter(Boolean);
+  return { deps: grab(t.match(/\[packages\]([\s\S]*?)(\n\[|$)/)),
+           dev:  grab(t.match(/\[dev-packages\]([\s\S]*?)(\n\[|$)/)), version:null };
+}
+function mfConda(t){
+  const deps = []; let inDeps = false;
+  t.split("\n").forEach(l => {
+    if (/^dependencies:/.test(l)){ inDeps = true; return; }
+    if (inDeps && /^\S/.test(l)) inDeps = false;
+    if (inDeps){
+      const m = l.match(/^\s*-\s*([A-Za-z0-9._-]+)\s*([=<>~].*)?$/);
+      if (m) deps.push(dep(m[1], m[2] || "", /^=/.test(m[2] || "")));
+    }
+  });
+  return { deps, dev:[], version:null };
+}
+function mfGoMod(t){
+  const deps = [];
+  t.split("\n").forEach(l => {
+    const m = l.match(/^\s*(?:require\s+)?([\w.\-\/]+\.[\w.\-\/]+)\s+(v\S+)/);
+    if (m) deps.push(dep(m[1], m[2], true));
+  });
+  return { deps, dev:[], version:null };
+}
+function mfCargo(t){
+  const sec = t.match(/\[dependencies\]([\s\S]*?)(\n\[|$)/);
+  const deps = !sec ? [] : sec[1].split("\n").map(l => {
+    const m = l.match(/^\s*([A-Za-z0-9._-]+)\s*=\s*(.+)$/);
+    if (!m) return null;
+    const v = (m[2].match(/version\s*=\s*["']([^"']+)["']/) || m[2].match(/["']([^"']+)["']/) || [])[1] || "";
+    return dep(m[1], v, /^\d/.test(v));
+  }).filter(Boolean);
+  const ver = t.match(/^\s*version\s*=\s*["']([^"']+)["']/m);
+  return { deps, dev:[], version: ver ? ver[1] : null };
+}
+function mfComposer(t){
+  const j = JSON.parse(t);
+  const conv = o => Object.entries(o||{}).map(([k,v]) => dep(k, v, /^\d/.test(String(v))));
+  return { deps:conv(j.require), dev:conv(j["require-dev"]), version:j.version||null };
+}
+function mfGemfile(t){
+  const deps = [];
+  t.split("\n").forEach(l => {
+    const m = l.match(/^\s*gem\s+["']([^"']+)["']\s*(?:,\s*["']([^"']+)["'])?/);
+    if (m) deps.push(dep(m[1], m[2] || "", /^\d/.test(m[2] || "")));
+  });
+  return { deps, dev:[], version:null };
+}
+function mfMaven(t){
+  const ids = [...t.matchAll(/<artifactId>([^<]+)<\/artifactId>/g)].map(m => dep(m[1], "", true));
+  return { deps: ids.slice(1), dev:[], version:null };   // first artifactId is the project itself
+}
+
+const MANIFESTS = [
+  {name:"package.json",     eco:"Node",    parse:mfNpm},
+  {name:"requirements.txt", eco:"Python",  parse:mfRequirements},
+  {name:"pyproject.toml",   eco:"Python",  parse:mfPyproject},
+  {name:"Pipfile",          eco:"Python",  parse:mfPipfile},
+  {name:"environment.yml",  eco:"conda",   parse:mfConda},
+  {name:"go.mod",           eco:"Go",      parse:mfGoMod},
+  {name:"Cargo.toml",       eco:"Rust",    parse:mfCargo},
+  {name:"composer.json",    eco:"PHP",     parse:mfComposer},
+  {name:"Gemfile",          eco:"Ruby",    parse:mfGemfile},
+  {name:"pom.xml",          eco:"Java",    parse:mfMaven}
+];
+const LOCKFILES = /^(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|poetry\.lock|Pipfile\.lock|Cargo\.lock|composer\.lock|Gemfile\.lock|go\.sum)$/;
+
+function analyzeDeps(files){
+  const events = [], findings = [];
+  events.push(ev("deps",{title:"Looking for a dependency manifest"}));
+
+  const found = MANIFESTS
+    .map(m => ({ m, f: files.find(x => x.name === m.name && x.text) }))
+    .filter(x => x.f);
+
+  if (!found.length){
+    events.push(ev("deps",{type:"blocker", severity:"warn", phase:"blocked",
+      title:"No dependency manifest in this project",
+      detail:"checked package.json, requirements.txt, pyproject.toml, Pipfile and six others"}));
+    findings.push({sev:"warn", text:"No dependency manifest — dependency drift could not be assessed"});
+    events.push(ev("deps",{type:"complete", phase:"done", title:"Dependency scan ended early"}));
+    return {events, findings};
+  }
+
+  const primary = found[0];
+  events.push(ev("deps",{title:`${primary.m.eco} project — reading ${primary.m.name}`}));
+  if (found.length > 1){
+    events.push(ev("deps",{title:`${found.length} manifests present`,
+      detail:found.map(x => x.m.name).join(" · ")}));
+  }
+
+  let r = null;
+  try { r = primary.m.parse(primary.f.text); } catch { r = null; }
+  if (!r){
+    events.push(ev("deps",{type:"risk", severity:"critical", phase:"blocked",
+      title:`${primary.m.name} could not be parsed`, detail:"the manifest is malformed"}));
+    findings.push({sev:"crit", text:`<code>${esc(primary.m.name)}</code> is malformed`});
+    events.push(ev("deps",{type:"complete", phase:"done", title:"Dependency scan aborted"}));
+    return {events, findings};
+  }
+
+  const all = r.deps.concat(r.dev);
+  events.push(ev("deps",{title: r.dev.length
+    ? `${r.deps.length} dependencies, ${r.dev.length} dev dependencies`
+    : `${r.deps.length} dependencies declared`}));
+  if (r.version) findings.push({sev:"info", text:`Declared version <code>${esc(r.version)}</code>`});
+
+  const loose = all.filter(d => !d.pinned);
+  if (all.length && loose.length){
+    const pct = Math.round(loose.length / all.length * 100);
+    events.push(ev("deps",{title:`${loose.length} of ${all.length} packages unpinned (${pct}%)`,
+      detail:loose.slice(0,5).map(d => d.version ? `${d.name} ${d.version}` : d.name).join(", ")}));
+    if (pct >= 60){
+      events.push(ev("deps",{type:"risk", severity:"warn",
+        title:"Most dependencies float — builds are not reproducible"}));
+      findings.push({sev:"warn",
+        text:`${pct}% of dependencies are unpinned in <code>${esc(primary.m.name)}</code>`});
+    }
+  }
+
+  const pre = all.filter(d => /^[\^~>=<\s]*0\./.test(String(d.version || "")));
+  if (pre.length){
+    events.push(ev("deps",{type:"risk", severity:"warn",
+      title:`${pre.length} pre-1.0 package${pre.length>1?"s":""}`,
+      detail:pre.slice(0,5).map(d => `${d.name} ${d.version}`).join(", ")}));
+    findings.push({sev:"warn",
+      text:`${pre.length} dependency(ies) below 1.0 — minor releases may break`});
+  }
+
+  const locks = files.filter(f => LOCKFILES.test(f.name));
+  const npmLocks = locks.filter(f => /^(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$/.test(f.name));
+  if (npmLocks.length > 1){
+    events.push(ev("deps",{type:"question", phase:"waiting", severity:"warn",
+      title:"More than one lockfile is present",
+      detail:npmLocks.map(l => l.name).join(" · "),
+      decision:{ question:`This project contains ${npmLocks.map(l=>l.name).join(" and ")}. Which one is authoritative for the release?`,
+                 options: npmLocks.map(l => l.name).concat("Decide later") }}));
+    findings.push({sev:"warn",
+      text:`Conflicting lockfiles: ${npmLocks.map(l => "<code>"+esc(l.name)+"</code>").join(", ")}`});
+  } else if (!locks.length){
+    events.push(ev("deps",{type:"risk", severity:"warn", title:"No lockfile found"}));
+    findings.push({sev:"warn", text:"No lockfile — installs are not reproducible"});
+  } else {
+    events.push(ev("deps",{title:`Lockfile present: ${locks[0].name}`}));
+  }
+
+  events.push(ev("deps",{type:"complete", phase:"done", title:"Dependency scan complete"}));
+  return {events, findings};
+}
+
+function analyzeTests(files){
+  const events = [], findings = [];
+  const isTest = f => /\.(test|spec)\.[jt]sx?$/.test(f.name)
+                   || /(^|\/)(__tests__|tests?)\//i.test(f.path)
+                   || /^test_.*\.(py|rb)$/.test(f.name)
+                   || /_test\.(py|go|rb|js|ts)$/.test(f.name)
+                   || /_spec\.rb$/.test(f.name)
+                   || /Test\.java$/.test(f.name);
+  const tests = files.filter(isTest);
+  const src = files.filter(f => CODE_EXT.has(f.ext) && !isTest(f));
+
+  events.push(ev("tests",{title:"Locating test files"}));
+
+  if (!tests.length){
+    events.push(ev("tests",{type:"blocker", phase:"blocked", severity:"warn",
+      title:"No test files found", detail:"nothing matched *.test.*, *.spec.*, __tests__/ or test_*.py"}));
+    findings.push({sev:"warn", text:"No tests present — release confidence rests on manual checking"});
+    events.push(ev("tests",{type:"complete", phase:"done", title:"Test scan complete"}));
+    return {events, findings};
+  }
+
+  events.push(ev("tests",{title:`${tests.length} test file${tests.length>1?"s":""} found`,
+    detail:tests.slice(0,4).map(t=>t.path).join(", ")}));
+  const ratio = src.length ? tests.length / src.length : 0;
+  events.push(ev("tests",{title:`Test-to-source ratio ${(ratio*100).toFixed(0)}%`}));
+  if (ratio < 0.15){
+    events.push(ev("tests",{type:"risk", severity:"warn", title:"Thin test coverage for this change surface"}));
+    findings.push({sev:"warn", text:`Only ${tests.length} test file(s) for ${src.length} source files`});
+  } else {
+    findings.push({sev:"info", text:`${tests.length} test file(s) across ${src.length} source files`});
+  }
+  events.push(ev("tests",{type:"complete", phase:"done", title:"Test scan complete"}));
+  return {events, findings};
+}
+
+function analyzeDocs(files){
+  const events = [], findings = [];
+  const readme = files.find(f => /^readme(\.md|\.txt)?$/i.test(f.name));
+  const change = files.find(f => /^changelog(\.md)?$/i.test(f.name));
+  const code   = files.filter(f => CODE_EXT.has(f.ext));
+  const newest = code.reduce((m,f)=> f.mtime > (m?.mtime||0) ? f : m, null);
+
+  events.push(ev("docs",{title:"Checking project documentation"}));
+
+  if (!readme){
+    events.push(ev("docs",{type:"risk", severity:"warn", title:"No README found"}));
+    findings.push({sev:"warn", text:"No README in the project root"});
+  } else {
+    events.push(ev("docs",{title:`README present (${(readme.size/1024).toFixed(1)} KB)`}));
+    if (newest && newest.mtime - readme.mtime > 7*864e5){
+      const days = Math.round((newest.mtime - readme.mtime)/864e5);
+      events.push(ev("docs",{type:"risk", severity:"warn",
+        title:`README is ${days} days behind the newest source file`,
+        detail:`${newest.path} changed more recently than the README`}));
+      findings.push({sev:"warn", text:`README trails <code>${esc(newest.path)}</code> by ${days} days`});
+    }
+  }
+
+  if (!change){
+    events.push(ev("docs",{type:"question", phase:"waiting", severity:"warn",
+      title:"No CHANGELOG in this project",
+      detail:"release notes would have to be written by hand",
+      decision:{ question:"There is no CHANGELOG. Draft one from the files that changed most recently?",
+                 options:["Draft a CHANGELOG","Skip for this release"] }}));
+    findings.push({sev:"warn", text:"No <code>CHANGELOG</code> — release notes are manual"});
+  } else {
+    events.push(ev("docs",{title:"CHANGELOG present"}));
+    findings.push({sev:"info", text:"<code>CHANGELOG</code> found and readable"});
+  }
+  events.push(ev("docs",{type:"complete", phase:"done", title:"Documentation check complete"}));
+  return {events, findings};
+}
+
+/* Interleave the four analyzers so the garden grows in parallel. */
+function buildRun(files){
+  const parts = [analyzeChange(files), analyzeDeps(files), analyzeTests(files), analyzeDocs(files)];
+  const queues = parts.map(p => p.events.slice());
+  state.findings = parts.flatMap(p => p.findings);
+  Object.values(state.agents).forEach(a => {
+    a.total = queues.flat().filter(e => e.analyzer === a.id).length || 1;
+    a.done = 0; a.phase = "planned";
+  });
+  const out = [];
+  while (queues.some(q => q.length)){
+    queues.forEach(q => { if (q.length) out.push(q.shift()); });
+  }
+  return out;
+}
+
+/* ---------------- attention manager ---------------- */
+/* Pure: event in, route out. The whole point of the project. */
+function classify(e){
+  if (e.decision) return "decision";
+  if (e.severity === "critical") return "alert";
+  if (e.type === "blocker") return "blocker";
+  if (e.type === "risk" && e.severity === "warn") return "blocker";
+  return "silent";
+}
+
+/* ---------------- streaming ---------------- */
+
+function startRun(){
+  state.events = buildRun(state.files);
+  state.idx = 0; state.total = 0; state.surfaced = 0;
+  $("interrupts").innerHTML = ""; $("reportSlot").innerHTML = ""; $("log").innerHTML = "";
+  $("garden-title").textContent = "Bob and the agents are working.";
+  renderGarden();
+  setStatus("ok","No action needed");
+  state.paused = false;
+  clearInterval(state.timer);
+  state.timer = setInterval(step, 260);
+}
+
+function step(){
+  if (state.paused) return;
+  if (state.idx >= state.events.length){ finishRun(); return; }
+  const e = state.events[state.idx++];
+  const route = classify(e);
+
+  state.total++;
+  const a = state.agents[e.analyzer];
+  a.done++; a.phase = e.phase === "done" ? "done" : e.phase === "blocked" ? "blocked"
+           : e.phase === "waiting" ? "waiting" : "working";
+
+  appendLog(e, route);                        // IDE view always sees everything
+  if (route !== "silent"){ state.surfaced++; surface(e, route); }
+  renderGarden(); renderTiles();
+}
+
+function finishRun(){
+  clearInterval(state.timer); state.timer = null;
+  Object.values(state.agents).forEach(a => { if (a.phase !== "blocked") a.phase = "done"; });
+  renderGarden(); renderTiles();
+  $("garden-title").textContent = "Work finished. Here is what matters.";
+  setStatus("ok","Run complete");
+  renderReport();
+}
+
+/* ---------------- rendering ---------------- */
+
+/* Growth stages, drawn in the lucide idiom the surface already uses. */
+const STAGE_ICON = {
+  seed:   `<circle cx="12" cy="12" r="9"/>`,
+  sprout: `<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/>
+           <path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8Z"/>
+           <path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2Z"/>`,
+  leaf:   `<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/>
+           <path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/>`,
+  flower: `<circle cx="12" cy="12" r="2.6"/>
+           <path d="M12 9.4a2.9 2.9 0 1 0-2.6-4.2A2.9 2.9 0 0 0 12 9.4Z"/>
+           <path d="M14.6 12a2.9 2.9 0 1 0 4.2-2.6A2.9 2.9 0 0 0 14.6 12Z"/>
+           <path d="M12 14.6a2.9 2.9 0 1 0 2.6 4.2A2.9 2.9 0 0 0 12 14.6Z"/>
+           <path d="M9.4 12a2.9 2.9 0 1 0-4.2 2.6A2.9 2.9 0 0 0 9.4 12Z"/>`
+};
+
+function stageFor(pct, phase){
+  if (phase === "blocked") return "blocked";
+  if (phase === "waiting") return "waiting";
+  if (pct === 0)   return "seed";
+  if (pct === 100) return "flower";
+  return pct < 40 ? "sprout" : "leaf";
+}
+const ICON_FOR_STAGE = { blocked:"leaf", waiting:"leaf", seed:"seed",
+                         sprout:"sprout", leaf:"leaf", flower:"flower" };
+const PHASE_LABEL = { planned:"Planned", working:"Growing", waiting:"Waiting on you",
+                      blocked:"Blocked", done:"Complete" };
+
+function renderGarden(){
+  $("garden").innerHTML = Object.values(state.agents).map(a => {
+    const pct = a.total ? Math.min(100, Math.round(a.done / a.total * 100)) : 0;
+    const stage = stageFor(pct, a.phase);
+    const growth = Math.max(.45, pct / 100);
+    return `<article class="agent ${a.phase === "done" ? "agent-complete" : ""}" data-phase="${a.phase}">
+      <div class="plant stage-${stage}" style="--growth:${growth}">
+        <svg viewBox="0 0 24 24" aria-hidden="true">${STAGE_ICON[ICON_FOR_STAGE[stage]]}</svg>
+      </div>
+      <strong>${a.name}</strong>
+      <div class="progress-track" role="progressbar" aria-label="${a.name} progress"
+           aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
+      <small><b>${pct}%</b> · ${PHASE_LABEL[a.phase]}</small>
+    </article>`;
+  }).join("");
+
+  const done = Object.values(state.agents).filter(a => a.phase === "done").length;
+  const act  = Object.values(state.agents).filter(a => a.phase === "working" || a.phase === "waiting").length;
+  $("rActive").textContent = `${act} active · ${done} complete`;
+}
+
+function renderTiles(){
+  $("tTotal").textContent = state.total;
+  $("tSurf").textContent  = state.surfaced;
+  const pct = state.total ? Math.round((1 - state.surfaced/state.total) * 100) : 0;
+  $("tNoise").textContent = state.total ? pct + "%" : "—";
+}
+
+function appendLog(e, route){
+  const d = document.createElement("div");
+  d.className = "logline"; d.dataset.sev = e.severity;
+  const t = new Date(e.ts).toLocaleTimeString("en-GB",{hour12:false});
+  d.innerHTML = `<span class="t">${t}</span> <span class="a">[${esc(e.analyzer)}]</span> `
+    + `${esc(e.type)}/${esc(e.severity)} — ${esc(e.title)}`
+    + (e.detail ? `\n${" ".repeat(11)}${esc(e.detail)}` : "")
+    + (route !== "silent" ? `  ← surfaced` : "");
+  const log = $("log");
+  log.appendChild(d);
+  log.parentElement.scrollTop = log.parentElement.scrollHeight;
+}
+
+function surface(e, route){
+  const card = document.createElement("div");
+
+  if (route === "decision"){
+    state.paused = true;
+    setStatus("decision","Decision needed");
+    card.className = "card";
+    card.innerHTML = `<div class="lbl">Decision required</div>
+      <h3>${esc(e.decision.question)}</h3>
+      <p>${esc(e.detail || "")}</p>
+      <div class="acts">${e.decision.options.map((o,i) =>
+        `<button class="${i===0?"pri":""}" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+    card.querySelectorAll("button").forEach(b => b.onclick = () => {
+      card.querySelector(".acts").innerHTML =
+        `<span class="answered">Answered: <strong>${esc(b.dataset.o)}</strong></span>`;
+      state.findings.push({sev:"info",
+        text:`You chose <strong>${esc(b.dataset.o)}</strong> — ${esc(e.decision.question)}`});
+      state.paused = false;
+      setStatus("ok","No action needed");
+    });
+  } else {
+    const crit = route === "alert";
+    card.className = "card" + (crit ? " crit" : "");
+    card.innerHTML = `<div class="lbl">${crit ? "Critical risk" : "Blocked"}</div>
+      <h3>${esc(e.title)}</h3><p>${esc(e.detail || "")}</p>`;
+    setStatus(crit ? "blocked" : "decision", crit ? "Attention required" : "Blocker raised");
+    setTimeout(() => { if (!state.paused && state.timer) setStatus("ok","No action needed"); }, 2600);
+  }
+  $("interrupts").appendChild(card);
+}
+
+function renderReport(){
+  const groups = {crit:[], warn:[], info:[]};
+  state.findings.forEach(f => groups[f.sev] ? groups[f.sev].push(f) : groups.info.push(f));
+  const pct = state.total ? Math.round((1 - state.surfaced/state.total) * 100) : 0;
+  const sec = (title, items, cls) => items.length ? `<div class="rsec"><div class="rt">${title}</div>
+    <ul>${items.map(i => `<li><span class="sev ${cls}">${cls||"info"}</span>${i.text}</li>`).join("")}</ul></div>` : "";
+
+  $("reportSlot").innerHTML = `<div class="report">
+    <h3>Release readiness report</h3>
+    <div class="sub">${state.files.length} files scanned · ${state.total} events ·
+      ${state.surfaced} needed you · ${pct}% held back${state.truncated ? " · truncated at "+MAX_FILES+" files" : ""}</div>
+    ${sec("Needs a decision before release", groups.crit, "crit")}
+    ${sec("Worth a look", groups.warn, "warn")}
+    ${sec("For the record", groups.info, "")}
+  </div>`;
+}
+
+/* ---------------- file tree + code ---------------- */
+
+function renderTree(){
+  const tree = $("tree");
+  tree.innerHTML = `<div class="tree-head">Files · ${state.files.length}</div>`;
+  const dirs = {};
+  state.files.forEach(f => {
+    const d = f.path.includes("/") ? f.path.slice(0, f.path.lastIndexOf("/")) : "";
+    (dirs[d] = dirs[d] || []).push(f);
+  });
+  Object.keys(dirs).sort().forEach(d => {
+    if (d){
+      const h = document.createElement("div");
+      h.className = "node dir"; h.textContent = d + "/";
+      tree.appendChild(h);
+    }
+    dirs[d].sort((a,b)=>a.name.localeCompare(b.name)).forEach(f => {
+      const b = document.createElement("button");
+      b.className = "node"; b.type = "button";
+      b.innerHTML = `<span class="ico">${TEXT_EXT.has(f.ext) ? "◦" : "▪"}</span>${esc(f.name)}`;
+      b.style.paddingLeft = d ? "28px" : "16px";
+      b.onclick = () => openFile(f, b);
+      tree.appendChild(b);
+    });
+  });
+}
+
+async function openFile(f, btn){
+  document.querySelectorAll(".node[aria-current]").forEach(n => n.removeAttribute("aria-current"));
+  if (btn) btn.setAttribute("aria-current","true");
+  $("codePath").textContent = f.path;
+
+  if (f.text === null){
+    if (!TEXT_EXT.has(f.ext) || f.size > MAX_READ){
+      $("code").innerHTML = `<div class="row"><span class="n"></span><span class="l tok-c">
+        binary or oversized file — not rendered (${(f.size/1024).toFixed(1)} KB)</span></div>`;
+      $("codeMeta").textContent = "";
+      return;
+    }
+    try { f.text = await (await f.handle.getFile()).text(); f.lines = f.text.split("\n").length; }
+    catch { f.text = ""; }
+  }
+  $("codeMeta").textContent = `${f.lines || 0} lines · ${(f.size/1024).toFixed(1)} KB`;
+  $("code").innerHTML = f.text.split("\n").slice(0, 3000).map((line, i) =>
+    `<div class="row"><span class="n">${i+1}</span><span class="l">${hl(line, f.ext)}</span></div>`).join("");
+}
+
+const KEYWORDS = /^(const|let|var|function|return|if|else|for|while|do|class|new|import|export|from|default|await|async|try|catch|finally|throw|typeof|instanceof|interface|type|enum|extends|implements|public|private|protected|static|readonly|def|self|None|True|False|elif|lambda|pass|package|func|struct|impl|fn|pub|use|match|mut|null|true|false|undefined|this|super|yield|switch|case|break|continue)$/;
+
+function hl(line, e){
+  const hash = HASH_COMMENT.has(e);
+  const pattern = hash
+    ? /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g
+    : /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+  let out = "", last = 0, m;
+  while ((m = pattern.exec(line)) !== null){
+    out += esc(line.slice(last, m.index));
+    if (m[1])      out += `<span class="tok-c">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-s">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-n">${esc(m[3])}</span>`;
+    else if (m[4]) out += KEYWORDS.test(m[4]) ? `<span class="tok-k">${m[4]}</span>` : esc(m[4]);
+    last = pattern.lastIndex;
+  }
+  return out + esc(line.slice(last)) || "&nbsp;";
+}
+
+/* ---------------- breathing ---------------- */
+
+const BREATH = [["Breathe in",4],["Hold",2],["Breathe out",6]];
+let bStep = 0;
+function breathe(){
+  const [label, secs] = BREATH[bStep % BREATH.length];
+  $("bLab").textContent = label;
+  $("bSec").textContent = secs + " seconds";
+  const c = $("circle");
+  c.style.transitionDuration = secs + "s";
+  c.style.transform = label === "Breathe out" ? "scale(.86)" : "scale(1.04)";
+  bStep++;
+  setTimeout(breathe, secs * 1000);
+}
+
+/* ---------------- boot ---------------- */
+
+async function pickFolder(){
+  let dir;
+  try { dir = await window.showDirectoryPicker({ mode:"read" }); }
+  catch { return; }                                   // user cancelled
+  $("folderName").textContent = dir.name;
+  $("empty").classList.add("hidden");
+  setStatus("idle","Scanning…");
+
+  state.files = []; state.truncated = false;
+  await walk(dir, "", 0, state.files);
+  state.files.sort((a,b) => a.path.localeCompare(b.path));
+  await readSome(state.files);
+
+  renderTree();
+  startRun();
+}
+
+$("pick").onclick = pickFolder;
+$("rescan").onclick = pickFolder;
+
+if (!window.showDirectoryPicker){
+  $("apiWarn").classList.remove("hidden");
+  $("pick").disabled = true;
+}
+
+renderGarden(); renderTiles(); breathe();
+</script>
+</body>
+</html>
