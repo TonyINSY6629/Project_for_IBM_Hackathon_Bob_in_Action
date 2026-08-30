@@ -25,7 +25,7 @@ Submission for the **IBM TechXchange 2026 Pre-conference Dev Day Hackathon** —
 14. [How IBM Bob 2.0 was used](#how-ibm-bob-20-was-used)
 15. [Submission deliverables](#submission-deliverables)
 16. [Team](#team)
-17. [Other Resources Used]
+17. [Other Resources Used](#other-resources-used)
 
 ---
 
