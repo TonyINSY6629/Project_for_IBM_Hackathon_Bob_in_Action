@@ -17,15 +17,14 @@ Submission for the **IBM TechXchange 2026 Pre-conference Dev Day Hackathon** —
 6. [Event classification](#event-classification)
 7. [The workload: Release Readiness Assistant](#the-workload-release-readiness-assistant)
 8. [Event contract](#event-contract)
-9. [API surface](#api-surface)
-10. [Live mode and replay mode](#live-mode-and-replay-mode)
-11. [Tech stack](#tech-stack)
-12. [Measuring the impact](#measuring-the-impact)
-13. [Repository layout](#repository-layout)
-14. [Running locally](#running-locally)
-15. [How IBM Bob 2.0 was used](#how-ibm-bob-20-was-used)
-16. [Submission deliverables](#submission-deliverables)
-17. [Team](#team)
+9. [How a run starts](#how-a-run-starts)
+10. [Tech stack](#tech-stack)
+11. [Measuring the impact](#measuring-the-impact)
+12. [Repository layout](#repository-layout)
+13. [Running locally](#running-locally)
+14. [How IBM Bob 2.0 was used](#how-ibm-bob-20-was-used)
+15. [Submission deliverables](#submission-deliverables)
+16. [Team](#team)
 
 ---
 
@@ -139,7 +138,7 @@ sequenceDiagram
     participant An as Analyzers (×4)
     participant R  as Release Report
 
-    Dev->>BB: Start run (live or replay)
+    Dev->>BB: Choose a project folder
     BB->>An: Spawn 4 parallel analyzers
     Note over BB: Garden activates — plants begin growing
 
@@ -179,13 +178,10 @@ flowchart LR
 
   BOB[/"IBM Bob event stream<br/>(future integration)"/]
 
-  subgraph Server["Backend"]
+  subgraph App["Browser app"]
     EA[Event Adapter]
     AM[Attention Manager]
     RB[Report Builder]
-  end
-
-  subgraph Web["Frontend"]
     G[Garden]
     D[Decision card]
     AL[Alert]
@@ -194,7 +190,7 @@ flowchart LR
 
   A1 & A2 & A3 & A4 --> EA
   BOB -.-> EA
-  EA -->|SSE| AM
+  EA --> AM
   AM -->|progress| G
   AM -->|decision| D
   AM -->|blocker / critical| AL
@@ -321,42 +317,21 @@ The format is deliberately source-agnostic. Any producer that can emit this shap
 
 ---
 
-## API surface
+## How a run starts
 
-| Route | Method | Purpose |
-| --- | --- | --- |
-| `/api/runs` | `POST` | Start a run — `{ mode: "live" \| "replay" }` |
-| `/api/runs/:id/stream` | `GET` | Server-sent event stream |
-| `/api/runs/:id/decisions` | `POST` | Submit an answer to a decision card |
-| `/api/runs/:id/report` | `GET` | The release readiness report |
-| `/api/health` | `GET` | Liveness |
-
----
-
-## Live mode and replay mode
-
-The prototype runs in two modes, and the difference is stated plainly because it matters:
-
-- **`live`** — the four analyzers execute against a real target repository and emit real events as they run.
-- **`replay`** — the backend replays a recorded run of those same analyzers. Deterministic, used for the demo video so a recording never depends on a live run succeeding.
+The developer points Bob Break at a project folder. The four analyzers then execute against that folder and emit real events as they run.
 
 ```mermaid
 flowchart LR
-    subgraph Live["Live mode"]
-        LREPO[("Real repo")] --> LA["Analyzers<br/>execute"]
-        LA --> LE["Real events"]
-    end
-
-    subgraph Replay["Replay mode"]
-        FF[/"fixtures/<br/>recorded run"/] --> RE["Events<br/>replayed"]
-    end
-
-    LE & RE --> EA["Event Adapter"]
+    PICK[("Folder chosen by<br/>the developer")] --> SCAN["Directory walked,<br/>text files read"]
+    SCAN --> AN["Analyzers<br/>execute"]
+    AN --> EV["Real events"]
+    EV --> EA["Event Adapter"]
     EA --> AM["Attention Manager"]
     AM --> UI["Visual interface<br/>and report"]
 ```
 
-Both modes exercise the identical Event Adapter, Attention Manager, and interface. Replay changes where the events come from, nothing else.
+Everything runs in the browser through the File System Access API. Nothing is uploaded — files are read locally, and a run is reproducible by pointing the app at the same folder again.
 
 **What this prototype does not do:** it does not attach to a running IBM Bob IDE process or receive live subagent events. No such hook is claimed. Bob's role in this project is described below, and a future Bob event integration is an adapter swap rather than a redesign.
 
@@ -370,26 +345,21 @@ graph LR
         R18[React 18]
         TS[TypeScript]
         VT[Vite]
-        FM[Framer Motion]
         CSS[Custom CSS]
     end
 
-    subgraph BE["Backend"]
-        Node[Node.js]
-        TSB[TypeScript]
-        EX[Express]
-        SSE[Server-Sent Events]
-        CP["Child processes<br/>for analyzers"]
+    subgraph AZ["Analysis — in the browser"]
+        FSA["File System<br/>Access API"]
+        ANZ["Four analyzers"]
+        ATM["Attention Manager<br/>(pure function)"]
     end
 
     subgraph State["State"]
-        RC["React Context<br/>+ reducer"]
-        RL["JSON run log<br/>on disk"]
+        RC["React hooks<br/>+ run reference"]
     end
 
     subgraph Test["Testing"]
         VIT[Vitest]
-        ATM["Attention Manager<br/>unit tests"]
     end
 
     subgraph Infra["Infrastructure"]
@@ -398,18 +368,18 @@ graph LR
         IBM["IBM Bob 2.0<br/>agentic development"]
     end
 
-    FE <-->|SSE / REST| BE
-    BE --> State
+    FE --> AZ
+    AZ --> State
     FE --> State
-    Test --> BE
+    Test --> FE
 ```
 
 | Layer | Technology | Reason |
 | --- | --- | --- |
 | Frontend | React 18 + TypeScript + Vite | Fast, visual, easy to divide across team members |
 | Styling | Custom CSS with variables | Greater control with less configuration |
-| Animations | Framer Motion | Garden growth, breathing animations, transitions |
-| State | React Context + reducer | Sufficient for an MVP — no external store needed |
+| Animations | CSS transitions and keyframes | Garden growth, breathing animations, transitions |
+| State | React hooks + a run reference | Sufficient for an MVP — no external store needed |
 | Events | JSON + Event Adapter | Supports both real and simulated events |
 | Testing | Vitest + Testing Library | Simple integration with Vite |
 | End-to-end | Playwright (time permitting) | Demonstrates the complete workflow |
@@ -459,9 +429,10 @@ The headline number is the ratio: **how many events the run produced versus how 
 ## Repository layout
 
 ```
-/server        backend — analyzers, event adapter, attention manager, report builder
-/web           frontend — garden, decision cards, alerts, report view
-/fixtures      recorded analyzer run used by replay mode
+/src           the app — analyzers, attention manager, garden, decision cards, report
+/dist          production build
+/Shell_for_Bob_Break(UI)
+               original design prototype the app was ported from
 /evidence      IBM Bob task session summary screenshots
 /docs          problem & solution statements, Bob usage statement
 ```
@@ -475,21 +446,17 @@ npm install
 npm run dev
 ```
 
-The frontend runs on `http://localhost:5173` and the backend on `http://localhost:3000`.
+The app runs on `http://localhost:5173`.
 
-To run against your own repository in live mode, set the target before starting the server:
+Open it in Chrome or Edge. Bob Break reads a local directory through the File System Access API, which Firefox and Safari do not implement; the app detects this and says so rather than failing silently.
 
-```bash
-TARGET_REPO=/path/to/repo npm run dev
-```
-
-Without `TARGET_REPO`, the server starts in replay mode using the recorded run in `/fixtures`.
+Click **Choose folder** and point it at any project. The four analyzers run against that folder and the garden fills as they go.
 
 ---
 
 ## How IBM Bob 2.0 was used
 
-IBM Bob Agent mode and subagents were used to plan, build, test, and document the release-readiness workflow. At runtime, the prototype executes four local analyzers in parallel and translates their activity into a shared event format. Replay mode provides a deterministic demonstration of the same workflow. A future Bob event integration would replace the current adapter without changing the Attention Manager or visual interface.
+IBM Bob Agent mode and subagents were used to plan, build, test, and document the release-readiness workflow. At runtime, the prototype executes four local analyzers in parallel and translates their activity into a shared event format. A future Bob event integration would replace the current adapter without changing the Attention Manager or visual interface.
 
 ```mermaid
 flowchart TD

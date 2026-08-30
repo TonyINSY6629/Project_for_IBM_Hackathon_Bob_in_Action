@@ -26,13 +26,12 @@ const shots = [
 ];
 
 const codeFiles = [
-  ["server/src/types/bob-events.ts",           "Shared event contract"],
-  ["server/src/attention/classifyEvent.ts",     "Event classifier (pure function)"],
-  ["server/src/attention/attentionReducer.ts",  "Attention reducer"],
-  ["server/src/attention/createSummary.ts",     "Summary generator"],
-  ["server/src/adapters/replayEventAdapter.ts", "Replay adapter"],
-  ["server/tests/attention.test.ts",            "Unit tests (40+)"],
-  ["server/src/index.ts",                       "Express server + SSE routes"],
+  ["src/hooks/useBobBreak.ts",            "Analyzers, event contract, attention classifier"],
+  ["src/components/BobBreak.tsx",         "Garden, decision cards, alerts, release report"],
+  ["src/styles/bob-break.css",            "Design tokens and visual states"],
+  ["src/components/Header.test.tsx",      "Unit tests - Header"],
+  ["src/components/AddTaskForm.test.tsx", "Unit tests - AddTaskForm"],
+  ["src/components/TaskList.test.tsx",    "Unit tests - TaskList"],
 ];
 
 const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
