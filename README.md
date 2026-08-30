@@ -25,6 +25,7 @@ Submission for the **IBM TechXchange 2026 Pre-conference Dev Day Hackathon** —
 14. [How IBM Bob 2.0 was used](#how-ibm-bob-20-was-used)
 15. [Submission deliverables](#submission-deliverables)
 16. [Team](#team)
+17. [Other Resources Used]
 
 ---
 
@@ -498,11 +499,17 @@ Specifically:
 
 ## Team
 
-| Role | Owner |
+| Name | Role |
 | --- | --- |
-| Backend — analyzers, event stream, attention manager | *TBD* |
-| Frontend — garden, decision cards, report view | *TBD* |
-| Evidence, written statements, video | *TBD* |
+| Tony Wang | Team Leader |
+| Silvia Tormo | General Member |
+| Sandra Tormoo | General Member |
+
+---
+
+## Other Resources Used
+
+- **Claude** — used Claude to formalize the code at the final stage after running out of Bobcoins
 
 ---
 
