@@ -109,10 +109,11 @@ Four analyzers run in parallel against a target repository:
 | `test-runner` | Test file inventory and coverage ratio | Test presence and thin-coverage warnings |
 | `doc-writer` | README and CHANGELOG against source timestamps | Stale documentation, missing release notes |
 
-The dependency analyzer reads ten manifest formats — `package.json`, `requirements.txt`,
-`pyproject.toml`, `Pipfile`, `environment.yml`, `go.mod`, `Cargo.toml`, `composer.json`,
-`Gemfile`, and `pom.xml` — so the prototype produces genuine findings on real projects rather
-than only on a prepared demo repository.
+The dependency analyzer parses three manifest formats — `package.json`, `requirements.txt`,
+and `composer.json` — and separately detects nine lockfile types, including `poetry.lock`,
+`Cargo.lock`, `Gemfile.lock`, and `go.sum`, to report whether installs are reproducible and
+whether conflicting lockfiles are present. That is enough to produce genuine findings on real
+Node, Python, and PHP projects rather than only on a prepared demo repository.
 
 ### The two views
 
